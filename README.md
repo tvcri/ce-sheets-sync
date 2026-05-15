@@ -1,6 +1,6 @@
 # CE Sheets Sync
 
-An automated data pipeline that pulls membership and volunteer data from Club Express and synchronizes it to Google Sheets for each TVCRI Village (metro area).
+An automated data pipeline that pulls membership, volunteer and service request data from Club Express and synchronizes it to Google Sheets for each TVCRI Village (metro area).
 
 ## How It Works
 

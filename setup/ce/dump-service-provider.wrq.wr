@@ -780,7 +780,25 @@
       <Title>Service Providers.Metro Area</Title>
     </ExpressViewFilter>
   </AllFilters>
-  <AnyFilters />
+  <AnyFilters>
+    <ExpressViewFilter>
+      <FilterText>Users.member_type</FilterText>
+      <Operator>et</Operator>
+      <Values />
+      <Title>Users.Member Type</Title>
+    </ExpressViewFilter>
+    <ExpressViewFilter>
+      <FilterText>Users.member_type</FilterText>
+      <Operator>noo</Operator>
+      <Values>
+        <string>CE Volunteer </string>
+        <string>Pseudo</string>
+        <string>Staff</string>
+        <string>Village Office</string>
+      </Values>
+      <Title>Users.Member Type</Title>
+    </ExpressViewFilter>
+  </AnyFilters>
   <TopNFilter>
     <Direction>Top</Direction>
     <N>10</N>

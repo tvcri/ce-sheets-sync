@@ -185,7 +185,7 @@
     <prompt_flag>False</prompt_flag>
     <and_flag>True</and_flag>
     <group_with_next_flag>False</group_with_next_flag>
-    <filter_ref_id>1859199105</filter_ref_id>
+    <filter_ref_id>683842072</filter_ref_id>
     <filter_title />
     <values>
       <value />
@@ -198,10 +198,32 @@
     <prompt_flag>False</prompt_flag>
     <and_flag>True</and_flag>
     <group_with_next_flag>False</group_with_next_flag>
-    <filter_ref_id>149038584</filter_ref_id>
+    <filter_ref_id>1621752780</filter_ref_id>
     <filter_title />
     <values>
       <value>1</value>
+    </values>
+  </filter>
+  <filter>
+    <filter_name>ProviderServices.category_name</filter_name>
+    <order_num>2</order_num>
+    <operator>oo</operator>
+    <prompt_flag>False</prompt_flag>
+    <and_flag>True</and_flag>
+    <group_with_next_flag>False</group_with_next_flag>
+    <filter_ref_id>434724401</filter_ref_id>
+    <filter_title />
+    <values>
+      <value>Errands</value>
+    </values>
+    <values>
+      <value>Home Help</value>
+    </values>
+    <values>
+      <value>Tech Support</value>
+    </values>
+    <values>
+      <value>Rides</value>
     </values>
   </filter>
   <topn>

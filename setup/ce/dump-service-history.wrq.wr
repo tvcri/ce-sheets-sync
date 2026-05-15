@@ -935,8 +935,8 @@
       <FilterText>ServiceRequests.service_request_status</FilterText>
       <Operator>oo</Operator>
       <Values>
-        <string>Completed</string>
         <string>Cancelled</string>
+        <string>Completed</string>
       </Values>
       <Title>Service Requests.Request Status</Title>
     </ExpressViewFilter>
@@ -956,6 +956,16 @@
         <string>=Today()</string>
       </Values>
       <Title>Service Requests.Finish Date/Time</Title>
+    </ExpressViewFilter>
+    <ExpressViewFilter>
+      <FilterText>Members.member_type</FilterText>
+      <Operator>oo</Operator>
+      <Values>
+        <string>Associate Member</string>
+        <string>Centennial Member</string>
+        <string>Member</string>
+      </Values>
+      <Title>Members.Member Type</Title>
     </ExpressViewFilter>
   </AllFilters>
   <AnyFilters />

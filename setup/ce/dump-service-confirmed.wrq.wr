@@ -893,6 +893,16 @@
       </Values>
       <Title>Service Request Providers.Contact Status</Title>
     </ExpressViewFilter>
+    <ExpressViewFilter>
+      <FilterText>Members.member_type</FilterText>
+      <Operator>oo</Operator>
+      <Values>
+        <string>Associate Member</string>
+        <string>Centennial Member</string>
+        <string>Member</string>
+      </Values>
+      <Title>Members.Member Type</Title>
+    </ExpressViewFilter>
   </AllFilters>
   <AnyFilters />
   <TopNFilter>

@@ -1,0 +1,9 @@
+node_modules/
+*.json
+!package.json
+!package-lock.json
+.env
+.env.local
+*.log
+tokens/
+scratch/

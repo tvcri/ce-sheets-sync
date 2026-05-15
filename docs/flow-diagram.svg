@@ -53,6 +53,7 @@
   <line x1="340" y1="324" x2="340" y2="414" stroke="#B4B2A9" stroke-width="0.8"/>
   <line x1="424" y1="324" x2="424" y2="414" stroke="#B4B2A9" stroke-width="0.8"/>
   <line x1="508" y1="324" x2="508" y2="414" stroke="#B4B2A9" stroke-width="0.8"/>
+  <line x1="592" y1="324" x2="592" y2="414" stroke="#B4B2A9" stroke-width="0.8"/>
 
   <!-- Row 1: 7 metro sheets -->
   <rect x="52"  y="334" width="72" height="44" rx="6" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>

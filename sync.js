@@ -100,11 +100,24 @@ async function syncSheets(csvContent, emailSentTimestamp) {
     info(`Using test spreadsheet`, { testId: process.env.TEST_SPREADSHEET_ID })
   }
 
-  info(`Starting sheet sync for all metro areas`, { count: areas.length, emailSentTimestamp })
+  info(`Starting sheet sync`, { count: areas.length, emailSentTimestamp })
+
+  // Sync Hub first for fastest aggregated view
+  if (areas.includes('Hub')) {
+    info(`Syncing Hub spreadsheet (priority)`)
+    try {
+      await syncHub(sheets, activeHubSpreadsheetId, parsed, emailSentTimestamp)
+    } catch (err) {
+      error(`Hub sync failed`, { error: err.message })
+    }
+  }
+
+  info(`Starting metro area syncs`, { count: areas.length })
 
   // Skip per-metro writes if DEBUG_HUB_ONLY=true (useful for testing hub sync in isolation)
   if (process.env.DEBUG_HUB_ONLY !== 'true') {
     for (const [i, metroArea] of areas.entries()) {
+      if (metroArea === 'Hub') continue
       const spreadsheetId = useTestSheet ? process.env.TEST_SPREADSHEET_ID : metroAreas[metroArea]
       if (!spreadsheetId) {
         warn(`Metro area not found in config`, { metroArea })
@@ -120,16 +133,7 @@ async function syncSheets(csvContent, emailSentTimestamp) {
     info(`Skipping per-metro area syncs (DEBUG_HUB_ONLY=true)`)
   }
 
-  info(`All metro area syncs complete`)
-
-  if (areas.includes('Hub')) {
-    info(`Syncing Hub spreadsheet`)
-    try {
-      await syncHub(sheets, activeHubSpreadsheetId, parsed, emailSentTimestamp)
-    } catch (err) {
-      error(`Hub sync failed`, { error: err.message })
-    }
-  }
+  info(`All sheet syncs complete`)
 }
 
 async function processMessage(emailMessage, subject) {

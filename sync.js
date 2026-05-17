@@ -102,7 +102,7 @@ async function syncSheets(csvContent, emailSentTimestamp) {
 
   info(`Starting sheet sync for all metro areas`, { count: areas.length, emailSentTimestamp })
 
-  // DEBUGGING: Skip per-metro writes, focus on hub
+  // Skip per-metro writes if DEBUG_HUB_ONLY=true (useful for testing hub sync in isolation)
   if (process.env.DEBUG_HUB_ONLY !== 'true') {
     for (const [i, metroArea] of areas.entries()) {
       const spreadsheetId = useTestSheet ? process.env.TEST_SPREADSHEET_ID : metroAreas[metroArea]

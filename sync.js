@@ -102,17 +102,22 @@ async function syncSheets(csvContent, emailSentTimestamp) {
 
   info(`Starting sheet sync for all metro areas`, { count: areas.length, emailSentTimestamp })
 
-  for (const [i, metroArea] of areas.entries()) {
-    const spreadsheetId = useTestSheet ? process.env.TEST_SPREADSHEET_ID : metroAreas[metroArea]
-    if (!spreadsheetId) {
-      warn(`Metro area not found in config`, { metroArea })
-      continue
+  // DEBUGGING: Skip per-metro writes, focus on hub
+  if (process.env.DEBUG_HUB_ONLY !== 'true') {
+    for (const [i, metroArea] of areas.entries()) {
+      const spreadsheetId = useTestSheet ? process.env.TEST_SPREADSHEET_ID : metroAreas[metroArea]
+      if (!spreadsheetId) {
+        warn(`Metro area not found in config`, { metroArea })
+        continue
+      }
+      const tabs = getMetroAreaData(parsed, metroArea)
+      await syncSheetWithRetry(sheets, metroArea, spreadsheetId, tabs, emailSentTimestamp, parsed)
+      if (i < areas.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 10000))
+      }
     }
-    const tabs = getMetroAreaData(parsed, metroArea)
-    await syncSheetWithRetry(sheets, metroArea, spreadsheetId, tabs, emailSentTimestamp, parsed)
-    if (i < areas.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 10000))
-    }
+  } else {
+    info(`Skipping per-metro area syncs (DEBUG_HUB_ONLY=true)`)
   }
 
   info(`All metro area syncs complete`)

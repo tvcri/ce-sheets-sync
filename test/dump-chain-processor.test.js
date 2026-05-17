@@ -203,13 +203,13 @@ test('getMetroAreaData', async (t) => {
 test('getProviderServiceCounts', async (t) => {
   await t.test('counts completed services from history and confirmed services', () => {
     const history = [
-      { 'Provider': 'Davis, Frank', 'Cancellation Reason': 'N/A' },
-      { 'Provider': 'Davis, Frank', 'Cancellation Reason': 'N/A' },
-      { 'Provider': 'Taylor, Eva', 'Cancellation Reason': 'N/A' }
+      { 'Volunteer': 'Davis, Frank', 'Status': 'Completed' },
+      { 'Volunteer': 'Davis, Frank', 'Status': 'Completed' },
+      { 'Volunteer': 'Taylor, Eva', 'Status': 'Completed' }
     ]
     const confirmed = [
-      { 'Provider': 'Davis, Frank' },
-      { 'Provider': 'Taylor, Eva' }
+      { 'Volunteer': 'Davis, Frank' },
+      { 'Volunteer': 'Taylor, Eva' }
     ]
     const counts = getProviderServiceCounts(history, confirmed)
 
@@ -224,10 +224,10 @@ test('getProviderServiceCounts', async (t) => {
 
   await t.test('filters out empty/whitespace provider names and "Cancelled"', () => {
     const history = [
-      { 'Provider': 'Davis, Frank', 'Cancellation Reason': 'N/A' },
-      { 'Provider': '', 'Cancellation Reason': 'N/A' },
-      { 'Provider': '   ', 'Cancellation Reason': 'N/A' },
-      { 'Provider': 'Cancelled', 'Cancellation Reason': 'N/A' }
+      { 'Volunteer': 'Davis, Frank', 'Status': 'Completed' },
+      { 'Volunteer': '', 'Status': 'Completed' },
+      { 'Volunteer': '   ', 'Status': 'Completed' },
+      { 'Volunteer': 'Cancelled', 'Status': 'Completed' }
     ]
     const counts = getProviderServiceCounts(history, [])
 
@@ -237,10 +237,10 @@ test('getProviderServiceCounts', async (t) => {
 
   await t.test('sorts by total count descending', () => {
     const history = [
-      { 'Provider': 'Eva', 'Cancellation Reason': 'N/A' },
-      { 'Provider': 'Eva', 'Cancellation Reason': 'N/A' },
-      { 'Provider': 'Eva', 'Cancellation Reason': 'N/A' },
-      { 'Provider': 'Frank', 'Cancellation Reason': 'N/A' }
+      { 'Volunteer': 'Eva', 'Status': 'Completed' },
+      { 'Volunteer': 'Eva', 'Status': 'Completed' },
+      { 'Volunteer': 'Eva', 'Status': 'Completed' },
+      { 'Volunteer': 'Frank', 'Status': 'Completed' }
     ]
     const counts = getProviderServiceCounts(history, [])
 
@@ -250,7 +250,7 @@ test('getProviderServiceCounts', async (t) => {
 })
 
 test('getMemberRequestCounts', async (t) => {
-  await t.test('counts open/confirmed/completed/cancelled by member', () => {
+  await t.test('counts open/confirmed/completed/unmatched/cancelled by member', () => {
     const open = [
       { 'Member': 'Smith, Alice' },
       { 'Member': 'Johnson, Bob' }
@@ -259,8 +259,8 @@ test('getMemberRequestCounts', async (t) => {
       { 'Member': 'Smith, Alice' }
     ]
     const history = [
-      { 'Member': 'Smith, Alice', 'Cancellation Reason': 'N/A' },
-      { 'Member': 'Johnson, Bob', 'Cancellation Reason': 'Cancelled - member request' }
+      { 'Member': 'Smith, Alice', 'Status': 'Completed' },
+      { 'Member': 'Johnson, Bob', 'Status': 'Unmatched' }
     ]
     const counts = getMemberRequestCounts(open, confirmed, history)
 
@@ -268,10 +268,13 @@ test('getMemberRequestCounts', async (t) => {
     assert.strictEqual(alice.open, 1)
     assert.strictEqual(alice.confirmed, 1)
     assert.strictEqual(alice.completed, 1)
+    assert.strictEqual(alice.unmatched, 0)
+    assert.strictEqual(alice.cancelled, 0)
 
     const bob = counts.find(c => c.name === 'Johnson, Bob')
     assert.strictEqual(bob.open, 1)
-    assert.strictEqual(bob.cancelled, 1)
+    assert.strictEqual(bob.unmatched, 1)
+    assert.strictEqual(bob.cancelled, 0)
   })
 })
 
@@ -315,7 +318,7 @@ test('getProviderCategoryCounts', async (t) => {
 })
 
 test('getServiceNameCounts', async (t) => {
-  await t.test('counts open/confirmed/completed/cancelled by service name', () => {
+  await t.test('counts open/confirmed/completed/unmatched/cancelled by service name', () => {
     const open = [
       { 'Service Name': 'Ride: Shopping' }
     ]
@@ -323,7 +326,7 @@ test('getServiceNameCounts', async (t) => {
       { 'Service Name': 'Ride: Shopping' }
     ]
     const history = [
-      { 'Service Name': 'Ride: Shopping', 'Cancellation Reason': 'N/A' }
+      { 'Service Name': 'Ride: Shopping', 'Status': 'Completed' }
     ]
     const counts = getServiceNameCounts(open, confirmed, history)
 
@@ -331,6 +334,8 @@ test('getServiceNameCounts', async (t) => {
     assert.strictEqual(shopping.open, 1)
     assert.strictEqual(shopping.confirmed, 1)
     assert.strictEqual(shopping.completed, 1)
+    assert.strictEqual(shopping.unmatched, 0)
+    assert.strictEqual(shopping.cancelled, 0)
   })
 })
 

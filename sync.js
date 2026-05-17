@@ -8,7 +8,9 @@ import { google } from 'googleapis'
 import { parseDumpChain, getMetroAreaData } from './lib/dump-chain-processor.js'
 import { syncMetroArea } from './lib/sheets-sync.js'
 import { info, error, warn } from './lib/logger.js'
-import { metroAreas } from './lib/metro-areas.js'
+import { productionMetroAreas, devMetroAreas } from './lib/metro-areas.js'
+
+const metroAreas = process.env.USE_DEV_SHEETS === 'true' ? devMetroAreas : productionMetroAreas
 
 // Ionos/1&1 IMAP — host/port/TLS defaults match their standard config
 const imapConfig = {

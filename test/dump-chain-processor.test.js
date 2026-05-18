@@ -110,11 +110,11 @@ test('flattenProviderCategories', async (t) => {
     const flattened = flattenProviderCategories(providers, categories)
 
     assert.strictEqual(flattened.length, 2)
-    assert.strictEqual(flattened[0]['Errands'], '✓')
-    assert.strictEqual(flattened[1]['Rides'], '✓')
+    assert.strictEqual(flattened[0]['Errand'], '✓')
+    assert.strictEqual(flattened[1]['Ride'], '✓')
     assert.strictEqual(flattened[1]['Tech Support'], '✓')
-    assert.ok(flattened[0].hasOwnProperty('Errands'))
-    assert.ok(flattened[1].hasOwnProperty('Rides'))
+    assert.ok(flattened[0].hasOwnProperty('Errand'))
+    assert.ok(flattened[1].hasOwnProperty('Ride'))
   })
 
   await t.test('filters out SRLog entries', () => {

@@ -91,20 +91,24 @@ async function syncSheets(csvContent, emailSentTimestamp) {
   }
 
   let areas = Object.keys(metroAreas)
+  let includeHub = true
   if (process.env.METRO_AREAS) {
     areas = process.env.METRO_AREAS.split(',').map(m => m.trim())
-    info(`Metro areas filtered by env var`, { count: areas.length, areas })
+    includeHub = areas.includes('Hub')
+    info(`Metro areas filtered by env var`, { count: areas.length, areas, includeHub })
+  } else {
+    info(`Metro areas using defaults (all metro areas + Hub)`)
   }
 
   if (useTestSheet) {
     info(`Using test spreadsheet`, { testId: process.env.TEST_SPREADSHEET_ID })
   }
 
-  info(`Starting sheet sync`, { count: areas.length, emailSentTimestamp })
+  info(`Starting sheet sync`, { count: areas.length, emailSentTimestamp, includeHub })
 
   // Sync Hub first for fastest aggregated view
-  if (areas.includes('Hub')) {
-    info(`Syncing Hub spreadsheet (priority)`)
+  if (includeHub) {
+    info(`Syncing Hub spreadsheet`)
     try {
       await syncHub(sheets, activeHubSpreadsheetId, parsed, emailSentTimestamp)
     } catch (err) {

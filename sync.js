@@ -116,12 +116,12 @@ async function syncSheets(csvContent, emailSentTimestamp) {
     }
   }
 
-  info(`Starting metro area syncs`, { count: areas.length })
+  const metroOnlyAreas = areas.filter(a => a !== 'Hub')
+  info(`Starting metro area syncs`, { count: metroOnlyAreas.length })
 
   // Skip per-metro writes if DEBUG_HUB_ONLY=true (useful for testing hub sync in isolation)
   if (process.env.DEBUG_HUB_ONLY !== 'true') {
-    for (const [i, metroArea] of areas.entries()) {
-      if (metroArea === 'Hub') continue
+    for (const [i, metroArea] of metroOnlyAreas.entries()) {
       const spreadsheetId = useTestSheet ? process.env.TEST_SPREADSHEET_ID : metroAreas[metroArea]
       if (!spreadsheetId) {
         warn(`Metro area not found in config`, { metroArea })
@@ -129,7 +129,7 @@ async function syncSheets(csvContent, emailSentTimestamp) {
       }
       const tabs = getMetroAreaData(parsed, metroArea)
       await syncSheetWithRetry(sheets, metroArea, spreadsheetId, tabs, emailSentTimestamp, parsed)
-      if (i < areas.length - 1) {
+      if (i < metroOnlyAreas.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 10000))
       }
     }

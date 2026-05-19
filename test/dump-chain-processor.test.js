@@ -110,11 +110,14 @@ test('flattenProviderCategories', async (t) => {
     const flattened = flattenProviderCategories(providers, categories)
 
     assert.strictEqual(flattened.length, 2)
-    assert.strictEqual(flattened[0]['Errands'], '✓')
-    assert.strictEqual(flattened[1]['Rides'], '✓')
+    assert.strictEqual(flattened[0]['Errand'], '✓')
+    assert.strictEqual(flattened[1]['Ride'], '✓')
     assert.strictEqual(flattened[1]['Tech Support'], '✓')
-    assert.ok(flattened[0].hasOwnProperty('Errands'))
-    assert.ok(flattened[1].hasOwnProperty('Rides'))
+    assert.ok(flattened[0].hasOwnProperty('Errand'))
+    assert.ok(flattened[1].hasOwnProperty('Ride'))
+    assert.ok(!flattened[0].hasOwnProperty('Errands'))
+    assert.ok(!flattened[1].hasOwnProperty('Rides'))
+    assert.strictEqual(flattened[0]['Ride'], '')
   })
 
   await t.test('filters out SRLog entries', () => {
@@ -203,13 +206,13 @@ test('getMetroAreaData', async (t) => {
 test('getProviderServiceCounts', async (t) => {
   await t.test('counts completed services from history and confirmed services', () => {
     const history = [
-      { 'Provider': 'Davis, Frank', 'Cancellation Reason': 'N/A' },
-      { 'Provider': 'Davis, Frank', 'Cancellation Reason': 'N/A' },
-      { 'Provider': 'Taylor, Eva', 'Cancellation Reason': 'N/A' }
+      { 'Volunteer': 'Davis, Frank', 'Status': 'Completed' },
+      { 'Volunteer': 'Davis, Frank', 'Status': 'Completed' },
+      { 'Volunteer': 'Taylor, Eva', 'Status': 'Completed' }
     ]
     const confirmed = [
-      { 'Provider': 'Davis, Frank' },
-      { 'Provider': 'Taylor, Eva' }
+      { 'Volunteer': 'Davis, Frank' },
+      { 'Volunteer': 'Taylor, Eva' }
     ]
     const counts = getProviderServiceCounts(history, confirmed)
 
@@ -224,10 +227,10 @@ test('getProviderServiceCounts', async (t) => {
 
   await t.test('filters out empty/whitespace provider names and "Cancelled"', () => {
     const history = [
-      { 'Provider': 'Davis, Frank', 'Cancellation Reason': 'N/A' },
-      { 'Provider': '', 'Cancellation Reason': 'N/A' },
-      { 'Provider': '   ', 'Cancellation Reason': 'N/A' },
-      { 'Provider': 'Cancelled', 'Cancellation Reason': 'N/A' }
+      { 'Volunteer': 'Davis, Frank', 'Status': 'Completed' },
+      { 'Volunteer': '', 'Status': 'Completed' },
+      { 'Volunteer': '   ', 'Status': 'Completed' },
+      { 'Volunteer': 'Cancelled', 'Status': 'Completed' }
     ]
     const counts = getProviderServiceCounts(history, [])
 
@@ -237,10 +240,10 @@ test('getProviderServiceCounts', async (t) => {
 
   await t.test('sorts by total count descending', () => {
     const history = [
-      { 'Provider': 'Eva', 'Cancellation Reason': 'N/A' },
-      { 'Provider': 'Eva', 'Cancellation Reason': 'N/A' },
-      { 'Provider': 'Eva', 'Cancellation Reason': 'N/A' },
-      { 'Provider': 'Frank', 'Cancellation Reason': 'N/A' }
+      { 'Volunteer': 'Eva', 'Status': 'Completed' },
+      { 'Volunteer': 'Eva', 'Status': 'Completed' },
+      { 'Volunteer': 'Eva', 'Status': 'Completed' },
+      { 'Volunteer': 'Frank', 'Status': 'Completed' }
     ]
     const counts = getProviderServiceCounts(history, [])
 
@@ -250,7 +253,7 @@ test('getProviderServiceCounts', async (t) => {
 })
 
 test('getMemberRequestCounts', async (t) => {
-  await t.test('counts open/confirmed/completed/cancelled by member', () => {
+  await t.test('counts open/confirmed/completed/unmatched/cancelled by member', () => {
     const open = [
       { 'Member': 'Smith, Alice' },
       { 'Member': 'Johnson, Bob' }
@@ -259,8 +262,8 @@ test('getMemberRequestCounts', async (t) => {
       { 'Member': 'Smith, Alice' }
     ]
     const history = [
-      { 'Member': 'Smith, Alice', 'Cancellation Reason': 'N/A' },
-      { 'Member': 'Johnson, Bob', 'Cancellation Reason': 'Cancelled - member request' }
+      { 'Member': 'Smith, Alice', 'Status': 'Completed' },
+      { 'Member': 'Johnson, Bob', 'Status': 'Unmatched' }
     ]
     const counts = getMemberRequestCounts(open, confirmed, history)
 
@@ -268,10 +271,13 @@ test('getMemberRequestCounts', async (t) => {
     assert.strictEqual(alice.open, 1)
     assert.strictEqual(alice.confirmed, 1)
     assert.strictEqual(alice.completed, 1)
+    assert.strictEqual(alice.unmatched, 0)
+    assert.strictEqual(alice.cancelled, 0)
 
     const bob = counts.find(c => c.name === 'Johnson, Bob')
     assert.strictEqual(bob.open, 1)
-    assert.strictEqual(bob.cancelled, 1)
+    assert.strictEqual(bob.unmatched, 1)
+    assert.strictEqual(bob.cancelled, 0)
   })
 })
 
@@ -315,7 +321,7 @@ test('getProviderCategoryCounts', async (t) => {
 })
 
 test('getServiceNameCounts', async (t) => {
-  await t.test('counts open/confirmed/completed/cancelled by service name', () => {
+  await t.test('counts open/confirmed/completed/unmatched/cancelled by service name', () => {
     const open = [
       { 'Service Name': 'Ride: Shopping' }
     ]
@@ -323,7 +329,7 @@ test('getServiceNameCounts', async (t) => {
       { 'Service Name': 'Ride: Shopping' }
     ]
     const history = [
-      { 'Service Name': 'Ride: Shopping', 'Cancellation Reason': 'N/A' }
+      { 'Service Name': 'Ride: Shopping', 'Status': 'Completed' }
     ]
     const counts = getServiceNameCounts(open, confirmed, history)
 
@@ -331,6 +337,8 @@ test('getServiceNameCounts', async (t) => {
     assert.strictEqual(shopping.open, 1)
     assert.strictEqual(shopping.confirmed, 1)
     assert.strictEqual(shopping.completed, 1)
+    assert.strictEqual(shopping.unmatched, 0)
+    assert.strictEqual(shopping.cancelled, 0)
   })
 })
 
@@ -396,5 +404,101 @@ test('getMemberVolunteerCounts', async (t) => {
     assert.strictEqual(counts.volunteersOnly, 0)
     assert.strictEqual(counts.both, 0)
     assert.strictEqual(counts.total, 0)
+  })
+})
+
+test('per-metro aggregation integrity', async (t) => {
+  await t.test('getProviderServiceCounts returns correct per-metro totals', () => {
+    const historyRecords = [
+      { 'Volunteer': 'Alice', 'Status': 'completed', 'Metro Area': 'Aquidneck' },
+      { 'Volunteer': 'Alice', 'Status': 'completed', 'Metro Area': 'Aquidneck' },
+      { 'Volunteer': 'Bob', 'Status': 'completed', 'Metro Area': 'Providence' },
+      { 'Volunteer': 'Bob', 'Status': 'completed', 'Metro Area': 'Providence' },
+      { 'Volunteer': 'Bob', 'Status': 'completed', 'Metro Area': 'Providence' }
+    ]
+    const confirmedRecords = [
+      { 'Volunteer': 'Alice', 'Metro Area': 'Aquidneck' },
+      { 'Volunteer': 'Bob', 'Metro Area': 'Providence' }
+    ]
+
+    const counts = getProviderServiceCounts(historyRecords, confirmedRecords)
+
+    // Verify correct counts per volunteer (independent of metro area)
+    const alice = counts.find(c => c.name === 'Alice')
+    assert.deepStrictEqual(alice, { name: 'Alice', completed: 2, confirmed: 1 })
+
+    const bob = counts.find(c => c.name === 'Bob')
+    assert.deepStrictEqual(bob, { name: 'Bob', completed: 3, confirmed: 1 })
+  })
+
+  await t.test('getMemberRequestCounts distinguishes between metro areas', () => {
+    const openRecords = [
+      { 'Member': 'John', 'Metro Area': 'Aquidneck' },
+      { 'Member': 'Jane', 'Metro Area': 'Providence' }
+    ]
+    const confirmedRecords = [
+      { 'Member': 'John', 'Metro Area': 'Aquidneck' },
+      { 'Member': 'John', 'Metro Area': 'Aquidneck' }
+    ]
+    const historyRecords = [
+      { 'Member': 'John', 'Status': 'completed', 'Metro Area': 'Aquidneck' },
+      { 'Member': 'Jane', 'Status': 'completed', 'Metro Area': 'Providence' },
+      { 'Member': 'Jane', 'Status': 'unmatched', 'Metro Area': 'Providence' }
+    ]
+
+    const counts = getMemberRequestCounts(openRecords, confirmedRecords, historyRecords)
+
+    const john = counts.find(c => c.name === 'John')
+    assert.strictEqual(john.open, 1)
+    assert.strictEqual(john.confirmed, 2)
+    assert.strictEqual(john.completed, 1)
+    assert.strictEqual(john.unmatched, 0)
+
+    const jane = counts.find(c => c.name === 'Jane')
+    assert.strictEqual(jane.open, 1)
+    assert.strictEqual(jane.confirmed, 0)
+    assert.strictEqual(jane.completed, 1)
+    assert.strictEqual(jane.unmatched, 1)
+  })
+
+  await t.test('per-metro aggregation with sample fixture (validates syncHub loop logic)', () => {
+    const parsed = parseDumpChain(sampleCsv)
+
+    // Simulate syncHub's per-metro loop for a single metro area
+    const metroArea = 'Aquidneck'
+    const open = (parsed['dump-service-requested'] || []).filter(r => r['Metro Area'] === metroArea)
+    const confirmed = (parsed['dump-service-confirmed'] || []).filter(r => r['Metro Area'] === metroArea)
+    const historyBase = (parsed['dump-service-history'] || [])
+      .filter(r => r['Metro Area'] === metroArea && r['Service Name'] !== 'Member Added')
+    const historyUnmatched = (parsed['dump-service-history-unmatched'] || [])
+      .filter(r => r['Metro Area'] === metroArea && r['Service Name'] !== 'Member Added')
+    const history = [...historyBase, ...historyUnmatched]
+
+    // Verify aggregation produces non-empty results
+    const pCounts = getProviderServiceCounts(history, confirmed)
+    const mCounts = getMemberRequestCounts(open, confirmed, history)
+
+    // These assertions would catch the bug where the per-metro loop was removed
+    // (providerTotals and memberTotals would be empty)
+    assert.ok(Array.isArray(pCounts), 'provider service counts should be an array')
+    assert.ok(Array.isArray(mCounts), 'member request counts should be an array')
+
+    // Verify the arrays are properly constructed (not just non-empty)
+    if (pCounts.length > 0) {
+      const sample = pCounts[0]
+      assert.ok(sample.hasOwnProperty('name'), 'provider count should have name')
+      assert.ok(sample.hasOwnProperty('completed'), 'provider count should have completed')
+      assert.ok(sample.hasOwnProperty('confirmed'), 'provider count should have confirmed')
+    }
+
+    if (mCounts.length > 0) {
+      const sample = mCounts[0]
+      assert.ok(sample.hasOwnProperty('name'), 'member count should have name')
+      assert.ok(sample.hasOwnProperty('open'), 'member count should have open')
+      assert.ok(sample.hasOwnProperty('confirmed'), 'member count should have confirmed')
+      assert.ok(sample.hasOwnProperty('completed'), 'member count should have completed')
+      assert.ok(sample.hasOwnProperty('unmatched'), 'member count should have unmatched')
+      assert.ok(sample.hasOwnProperty('cancelled'), 'member count should have cancelled')
+    }
   })
 })

@@ -6,9 +6,12 @@ import { simpleParser } from 'mailparser'
 import fs from 'fs'
 import { google } from 'googleapis'
 import { parseDumpChain, getMetroAreaData } from './lib/dump-chain-processor.js'
-import { syncMetroArea } from './lib/sheets-sync.js'
+import { syncMetroArea, syncHub } from './lib/sheets-sync.js'
 import { info, error, warn } from './lib/logger.js'
-import { metroAreas } from './lib/metro-areas.js'
+import { productionMetroAreas, devMetroAreas, hubSpreadsheetId, devHubSpreadsheetId } from './lib/metro-areas.js'
+
+const metroAreas = process.env.USE_DEV_SHEETS === 'true' ? devMetroAreas : productionMetroAreas
+const activeHubSpreadsheetId = process.env.USE_DEV_SHEETS === 'true' ? devHubSpreadsheetId : hubSpreadsheetId
 
 // Ionos/1&1 IMAP — host/port/TLS defaults match their standard config
 const imapConfig = {
@@ -88,31 +91,53 @@ async function syncSheets(csvContent, emailSentTimestamp) {
   }
 
   let areas = Object.keys(metroAreas)
+  let includeHub = true
   if (process.env.METRO_AREAS) {
     areas = process.env.METRO_AREAS.split(',').map(m => m.trim())
-    info(`Metro areas filtered by env var`, { count: areas.length, areas })
+    includeHub = areas.includes('Hub')
+    info(`Metro areas filtered by env var`, { count: areas.length, areas, includeHub })
+  } else {
+    info(`Metro areas using defaults (all metro areas + Hub)`)
   }
 
   if (useTestSheet) {
     info(`Using test spreadsheet`, { testId: process.env.TEST_SPREADSHEET_ID })
   }
 
-  info(`Starting sheet sync for all metro areas`, { count: areas.length, emailSentTimestamp })
+  info(`Starting sheet sync`, { count: areas.length, emailSentTimestamp, includeHub })
 
-  for (const [i, metroArea] of areas.entries()) {
-    const spreadsheetId = useTestSheet ? process.env.TEST_SPREADSHEET_ID : metroAreas[metroArea]
-    if (!spreadsheetId) {
-      warn(`Metro area not found in config`, { metroArea })
-      continue
-    }
-    const tabs = getMetroAreaData(parsed, metroArea)
-    await syncSheetWithRetry(sheets, metroArea, spreadsheetId, tabs, emailSentTimestamp, parsed)
-    if (i < areas.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 10000))
+  // Sync Hub first for fastest aggregated view
+  if (includeHub) {
+    info(`Syncing Hub spreadsheet`)
+    try {
+      await syncHub(sheets, activeHubSpreadsheetId, parsed, emailSentTimestamp)
+    } catch (err) {
+      error(`Hub sync failed`, { error: err.message })
     }
   }
 
-  info(`All metro area syncs complete`)
+  const metroOnlyAreas = areas.filter(a => a !== 'Hub')
+  info(`Starting metro area syncs`, { count: metroOnlyAreas.length })
+
+  // Skip per-metro writes if DEBUG_HUB_ONLY=true (useful for testing hub sync in isolation)
+  if (process.env.DEBUG_HUB_ONLY !== 'true') {
+    for (const [i, metroArea] of metroOnlyAreas.entries()) {
+      const spreadsheetId = useTestSheet ? process.env.TEST_SPREADSHEET_ID : metroAreas[metroArea]
+      if (!spreadsheetId) {
+        warn(`Metro area not found in config`, { metroArea })
+        continue
+      }
+      const tabs = getMetroAreaData(parsed, metroArea)
+      await syncSheetWithRetry(sheets, metroArea, spreadsheetId, tabs, emailSentTimestamp, parsed)
+      if (i < metroOnlyAreas.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 10000))
+      }
+    }
+  } else {
+    info(`Skipping per-metro area syncs (DEBUG_HUB_ONLY=true)`)
+  }
+
+  info(`All sheet syncs complete`)
 }
 
 async function processMessage(emailMessage, subject) {

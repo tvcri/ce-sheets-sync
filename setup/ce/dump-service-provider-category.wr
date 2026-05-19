@@ -185,7 +185,7 @@
     <prompt_flag>False</prompt_flag>
     <and_flag>True</and_flag>
     <group_with_next_flag>False</group_with_next_flag>
-    <filter_ref_id>683842072</filter_ref_id>
+    <filter_ref_id>668654156</filter_ref_id>
     <filter_title />
     <values>
       <value />
@@ -198,7 +198,7 @@
     <prompt_flag>False</prompt_flag>
     <and_flag>True</and_flag>
     <group_with_next_flag>False</group_with_next_flag>
-    <filter_ref_id>1621752780</filter_ref_id>
+    <filter_ref_id>1547840587</filter_ref_id>
     <filter_title />
     <values>
       <value>1</value>
@@ -211,7 +211,7 @@
     <prompt_flag>False</prompt_flag>
     <and_flag>True</and_flag>
     <group_with_next_flag>False</group_with_next_flag>
-    <filter_ref_id>434724401</filter_ref_id>
+    <filter_ref_id>1851336622</filter_ref_id>
     <filter_title />
     <values>
       <value>Errands</value>
@@ -224,6 +224,19 @@
     </values>
     <values>
       <value>Rides</value>
+    </values>
+  </filter>
+  <filter>
+    <filter_name>ServiceProviders.metro_area</filter_name>
+    <order_num>3</order_num>
+    <operator>&lt;&gt;</operator>
+    <prompt_flag>False</prompt_flag>
+    <and_flag>True</and_flag>
+    <group_with_next_flag>False</group_with_next_flag>
+    <filter_ref_id>1955993450</filter_ref_id>
+    <filter_title />
+    <values>
+      <value>TVC</value>
     </values>
   </filter>
   <topn>

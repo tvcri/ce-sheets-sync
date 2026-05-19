@@ -1,3 +1,5 @@
+[← Back to README](../README.md)
+
 # Google OAuth Setup
 
 The robot needs OAuth credentials to access Google Sheets.

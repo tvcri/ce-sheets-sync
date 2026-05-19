@@ -167,10 +167,65 @@
       </ReportFooterDropdownFontFormat>
     </ExpressViewColumn>
     <ExpressViewColumn>
-      <ColumnText>=If({ServiceRequests.service_request_status}="Cancelled", {ServiceRequests.service_request_status}, {ServiceProviders.Full Name (Reversed)})</ColumnText>
-      <Width>186</Width>
+      <ColumnText>=If({ServiceRequests.cancel_reason} = "N/A", "Completed", {ServiceRequests.cancel_reason})</ColumnText>
+      <Width>-1</Width>
       <AggType>None</AggType>
-      <FormulaTitle>Provider</FormulaTitle>
+      <FormulaTitle>Status</FormulaTitle>
+      <DetailDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </DetailDataFormat>
+      <FootersDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </FootersDataFormat>
+      <HorizontalAlign>Left</HorizontalAlign>
+      <HeaderFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </HeaderFontFormat>
+      <DetailChunkFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </DetailChunkFontFormat>
+      <GroupFootersDropdownFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </GroupFootersDropdownFontFormat>
+      <ReportFooterDropdownFontFormat>
+        <Weight>Bold</Weight>
+        <Underline>None</Underline>
+      </ReportFooterDropdownFontFormat>
+    </ExpressViewColumn>
+    <ExpressViewColumn>
+      <ColumnText>ServiceProviders.Full Name (Reversed)</ColumnText>
+      <Width>-1</Width>
+      <AggType>None</AggType>
+      <FormulaTitle>Volunteer</FormulaTitle>
       <DetailDataFormat>
         <decimalSymbol>.</decimalSymbol>
         <Type>General</Type>
@@ -654,63 +709,10 @@
       </ReportFooterDropdownFontFormat>
     </ExpressViewColumn>
     <ExpressViewColumn>
-      <ColumnText>ServiceRequests.destination_address1</ColumnText>
+      <ColumnText>=If(IsNull({ServiceRequests.destination_address2}), {ServiceRequests.destination_address1},Concatenate({ServiceRequests.destination_address1},", ",{ServiceRequests.destination_address2}))</ColumnText>
       <Width>-1</Width>
       <AggType>None</AggType>
-      <DetailDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </DetailDataFormat>
-      <FootersDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </FootersDataFormat>
-      <HorizontalAlign>Left</HorizontalAlign>
-      <HeaderFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </HeaderFontFormat>
-      <DetailChunkFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </DetailChunkFontFormat>
-      <GroupFootersDropdownFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </GroupFootersDropdownFontFormat>
-      <ReportFooterDropdownFontFormat>
-        <Weight>Bold</Weight>
-        <Underline>None</Underline>
-      </ReportFooterDropdownFontFormat>
-    </ExpressViewColumn>
-    <ExpressViewColumn>
-      <ColumnText>ServiceRequests.destination_address2</ColumnText>
-      <Width>-1</Width>
-      <AggType>None</AggType>
+      <FormulaTitle>Address</FormulaTitle>
       <DetailDataFormat>
         <decimalSymbol>.</decimalSymbol>
         <Type>General</Type>
@@ -765,6 +767,7 @@
       <ColumnText>ServiceRequests.destination_city</ColumnText>
       <Width>-1</Width>
       <AggType>None</AggType>
+      <FormulaTitle>City</FormulaTitle>
       <DetailDataFormat>
         <decimalSymbol>.</decimalSymbol>
         <Type>General</Type>
@@ -819,60 +822,7 @@
       <ColumnText>ServiceRequests.destination_phone</ColumnText>
       <Width>-1</Width>
       <AggType>None</AggType>
-      <DetailDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </DetailDataFormat>
-      <FootersDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </FootersDataFormat>
-      <HorizontalAlign>Left</HorizontalAlign>
-      <HeaderFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </HeaderFontFormat>
-      <DetailChunkFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </DetailChunkFontFormat>
-      <GroupFootersDropdownFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </GroupFootersDropdownFontFormat>
-      <ReportFooterDropdownFontFormat>
-        <Weight>Bold</Weight>
-        <Underline>None</Underline>
-      </ReportFooterDropdownFontFormat>
-    </ExpressViewColumn>
-    <ExpressViewColumn>
-      <ColumnText>ServiceRequests.cancel_reason</ColumnText>
-      <Width>-1</Width>
-      <AggType>None</AggType>
+      <FormulaTitle>Phone</FormulaTitle>
       <DetailDataFormat>
         <decimalSymbol>.</decimalSymbol>
         <Type>General</Type>
@@ -967,6 +917,25 @@
       </Values>
       <Title>Members.Member Type</Title>
     </ExpressViewFilter>
+    <ExpressViewFilter>
+      <FilterText>Members.metro_area_name</FilterText>
+      <Operator>net</Operator>
+      <Values>
+        <string>TVC</string>
+      </Values>
+      <Title>Members.Metro Area</Title>
+    </ExpressViewFilter>
+    <ExpressViewFilter>
+      <FilterText>ServiceRequests.cancel_reason</FilterText>
+      <Operator>oo</Operator>
+      <Values>
+        <string>Member cancelled</string>
+        <string>Member dropped</string>
+        <string>N/A</string>
+        <string>Volunteer cancelled</string>
+      </Values>
+      <Title>Service Requests.Cancellation Reason</Title>
+    </ExpressViewFilter>
   </AllFilters>
   <AnyFilters />
   <TopNFilter>
@@ -983,8 +952,8 @@
       <IsAscending>true</IsAscending>
     </ExpressViewSort>
     <ExpressViewSort>
-      <SortText>ServiceRequests.service_request_number</SortText>
-      <DisplayText>ServiceRequests.service_request_number</DisplayText>
+      <SortText>ServiceRequests.finish_date</SortText>
+      <DisplayText>ServiceRequests.finish_date</DisplayText>
       <IsAscending>true</IsAscending>
     </ExpressViewSort>
   </Sorts>
@@ -1042,7 +1011,7 @@
   <IncludeDetailRows>true</IncludeDetailRows>
   <ShowGroupFooters>true</ShowGroupFooters>
   <ShowReportFooter>false</ShowReportFooter>
-  <Id>9f75d07b-188a-4833-b14c-2aedaddf39f4</Id>
+  <Id>8542c241-1721-45bc-aabf-64cd60b18f03</Id>
   <Description />
   <FilterDescription />
   <ReportType>ExpressView</ReportType>

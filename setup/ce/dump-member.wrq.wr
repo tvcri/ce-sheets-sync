@@ -275,6 +275,225 @@
       </ReportFooterDropdownFontFormat>
     </ExpressViewColumn>
     <ExpressViewColumn>
+      <ColumnText>Questions.Service Notes on This Member</ColumnText>
+      <Width>-1</Width>
+      <AggType>None</AggType>
+      <FormulaTitle>Service Notes</FormulaTitle>
+      <DetailDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </DetailDataFormat>
+      <FootersDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </FootersDataFormat>
+      <HorizontalAlign>Left</HorizontalAlign>
+      <HeaderFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </HeaderFontFormat>
+      <DetailChunkFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </DetailChunkFontFormat>
+      <GroupFootersDropdownFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </GroupFootersDropdownFontFormat>
+      <ReportFooterDropdownFontFormat>
+        <Weight>Bold</Weight>
+        <Underline>None</Underline>
+      </ReportFooterDropdownFontFormat>
+    </ExpressViewColumn>
+    <ExpressViewColumn>
+      <ColumnText>Members.phone</ColumnText>
+      <Width>-1</Width>
+      <AggType>None</AggType>
+      <FormulaTitle>Phone</FormulaTitle>
+      <DetailDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </DetailDataFormat>
+      <FootersDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </FootersDataFormat>
+      <HorizontalAlign>Left</HorizontalAlign>
+      <HeaderFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </HeaderFontFormat>
+      <DetailChunkFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </DetailChunkFontFormat>
+      <GroupFootersDropdownFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </GroupFootersDropdownFontFormat>
+      <ReportFooterDropdownFontFormat>
+        <Weight>Bold</Weight>
+        <Underline>None</Underline>
+      </ReportFooterDropdownFontFormat>
+    </ExpressViewColumn>
+    <ExpressViewColumn>
+      <ColumnText>Members.cell_phone</ColumnText>
+      <Width>-1</Width>
+      <AggType>None</AggType>
+      <FormulaTitle>Cell</FormulaTitle>
+      <DetailDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </DetailDataFormat>
+      <FootersDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </FootersDataFormat>
+      <HorizontalAlign>Left</HorizontalAlign>
+      <HeaderFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </HeaderFontFormat>
+      <DetailChunkFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </DetailChunkFontFormat>
+      <GroupFootersDropdownFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </GroupFootersDropdownFontFormat>
+      <ReportFooterDropdownFontFormat>
+        <Weight>Bold</Weight>
+        <Underline>None</Underline>
+      </ReportFooterDropdownFontFormat>
+    </ExpressViewColumn>
+    <ExpressViewColumn>
+      <ColumnText>Members.primary_email</ColumnText>
+      <Width>-1</Width>
+      <AggType>None</AggType>
+      <DetailDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </DetailDataFormat>
+      <FootersDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </FootersDataFormat>
+      <HorizontalAlign>Left</HorizontalAlign>
+      <HeaderFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </HeaderFontFormat>
+      <DetailChunkFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </DetailChunkFontFormat>
+      <GroupFootersDropdownFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </GroupFootersDropdownFontFormat>
+      <ReportFooterDropdownFontFormat>
+        <Weight>Bold</Weight>
+        <Underline>None</Underline>
+      </ReportFooterDropdownFontFormat>
+    </ExpressViewColumn>
+    <ExpressViewColumn>
       <ColumnText>=If(IsNull({Members.address1}), {Members.address2},Concatenate({Members.address2},", ",{Members.address1}))</ColumnText>
       <Width>-1</Width>
       <AggType>None</AggType>
@@ -444,334 +663,6 @@
       <Width>-1</Width>
       <AggType>None</AggType>
       <FormulaTitle>Zip</FormulaTitle>
-      <DetailDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </DetailDataFormat>
-      <FootersDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </FootersDataFormat>
-      <HorizontalAlign>Left</HorizontalAlign>
-      <HeaderFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </HeaderFontFormat>
-      <DetailChunkFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </DetailChunkFontFormat>
-      <GroupFootersDropdownFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </GroupFootersDropdownFontFormat>
-      <ReportFooterDropdownFontFormat>
-        <Weight>Bold</Weight>
-        <Underline>None</Underline>
-      </ReportFooterDropdownFontFormat>
-    </ExpressViewColumn>
-    <ExpressViewColumn>
-      <ColumnText>Members.primary_email</ColumnText>
-      <Width>-1</Width>
-      <AggType>None</AggType>
-      <DetailDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </DetailDataFormat>
-      <FootersDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </FootersDataFormat>
-      <HorizontalAlign>Left</HorizontalAlign>
-      <HeaderFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </HeaderFontFormat>
-      <DetailChunkFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </DetailChunkFontFormat>
-      <GroupFootersDropdownFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </GroupFootersDropdownFontFormat>
-      <ReportFooterDropdownFontFormat>
-        <Weight>Bold</Weight>
-        <Underline>None</Underline>
-      </ReportFooterDropdownFontFormat>
-    </ExpressViewColumn>
-    <ExpressViewColumn>
-      <ColumnText>Members.phone</ColumnText>
-      <Width>-1</Width>
-      <AggType>None</AggType>
-      <FormulaTitle>Phone</FormulaTitle>
-      <DetailDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </DetailDataFormat>
-      <FootersDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </FootersDataFormat>
-      <HorizontalAlign>Left</HorizontalAlign>
-      <HeaderFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </HeaderFontFormat>
-      <DetailChunkFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </DetailChunkFontFormat>
-      <GroupFootersDropdownFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </GroupFootersDropdownFontFormat>
-      <ReportFooterDropdownFontFormat>
-        <Weight>Bold</Weight>
-        <Underline>None</Underline>
-      </ReportFooterDropdownFontFormat>
-    </ExpressViewColumn>
-    <ExpressViewColumn>
-      <ColumnText>Members.cell_phone</ColumnText>
-      <Width>-1</Width>
-      <AggType>None</AggType>
-      <FormulaTitle>Cell</FormulaTitle>
-      <DetailDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </DetailDataFormat>
-      <FootersDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </FootersDataFormat>
-      <HorizontalAlign>Left</HorizontalAlign>
-      <HeaderFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </HeaderFontFormat>
-      <DetailChunkFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </DetailChunkFontFormat>
-      <GroupFootersDropdownFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </GroupFootersDropdownFontFormat>
-      <ReportFooterDropdownFontFormat>
-        <Weight>Bold</Weight>
-        <Underline>None</Underline>
-      </ReportFooterDropdownFontFormat>
-    </ExpressViewColumn>
-    <ExpressViewColumn>
-      <ColumnText>Members.date_of_birth</ColumnText>
-      <Width>-1</Width>
-      <AggType>None</AggType>
-      <DetailDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </DetailDataFormat>
-      <FootersDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </FootersDataFormat>
-      <HorizontalAlign>Left</HorizontalAlign>
-      <HeaderFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </HeaderFontFormat>
-      <DetailChunkFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </DetailChunkFontFormat>
-      <GroupFootersDropdownFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </GroupFootersDropdownFontFormat>
-      <ReportFooterDropdownFontFormat>
-        <Weight>Bold</Weight>
-        <Underline>None</Underline>
-      </ReportFooterDropdownFontFormat>
-    </ExpressViewColumn>
-    <ExpressViewColumn>
-      <ColumnText>Questions.Member Is A Volunteer</ColumnText>
-      <Width>-1</Width>
-      <AggType>None</AggType>
-      <FormulaTitle>Is volunteer</FormulaTitle>
-      <DetailDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </DetailDataFormat>
-      <FootersDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </FootersDataFormat>
-      <HorizontalAlign>Left</HorizontalAlign>
-      <HeaderFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </HeaderFontFormat>
-      <DetailChunkFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </DetailChunkFontFormat>
-      <GroupFootersDropdownFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </GroupFootersDropdownFontFormat>
-      <ReportFooterDropdownFontFormat>
-        <Weight>Bold</Weight>
-        <Underline>None</Underline>
-      </ReportFooterDropdownFontFormat>
-    </ExpressViewColumn>
-    <ExpressViewColumn>
-      <ColumnText>Questions.Service Notes on This Member</ColumnText>
-      <Width>-1</Width>
-      <AggType>None</AggType>
-      <FormulaTitle>Service Notes</FormulaTitle>
       <DetailDataFormat>
         <decimalSymbol>.</decimalSymbol>
         <Type>General</Type>
@@ -1039,6 +930,115 @@
       </ReportFooterDropdownFontFormat>
     </ExpressViewColumn>
     <ExpressViewColumn>
+      <ColumnText>Questions.Member Is A Volunteer</ColumnText>
+      <Width>-1</Width>
+      <AggType>None</AggType>
+      <FormulaTitle>Is volunteer</FormulaTitle>
+      <DetailDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </DetailDataFormat>
+      <FootersDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </FootersDataFormat>
+      <HorizontalAlign>Left</HorizontalAlign>
+      <HeaderFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </HeaderFontFormat>
+      <DetailChunkFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </DetailChunkFontFormat>
+      <GroupFootersDropdownFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </GroupFootersDropdownFontFormat>
+      <ReportFooterDropdownFontFormat>
+        <Weight>Bold</Weight>
+        <Underline>None</Underline>
+      </ReportFooterDropdownFontFormat>
+    </ExpressViewColumn>
+    <ExpressViewColumn>
+      <ColumnText>Members.date_of_birth</ColumnText>
+      <Width>-1</Width>
+      <AggType>None</AggType>
+      <DetailDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </DetailDataFormat>
+      <FootersDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </FootersDataFormat>
+      <HorizontalAlign>Left</HorizontalAlign>
+      <HeaderFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </HeaderFontFormat>
+      <DetailChunkFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </DetailChunkFontFormat>
+      <GroupFootersDropdownFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </GroupFootersDropdownFontFormat>
+      <ReportFooterDropdownFontFormat>
+        <Weight>Bold</Weight>
+        <Underline>None</Underline>
+      </ReportFooterDropdownFontFormat>
+    </ExpressViewColumn>
+    <ExpressViewColumn>
       <ColumnText>Members.date_joined</ColumnText>
       <Width>-1</Width>
       <AggType>None</AggType>
@@ -1214,11 +1214,19 @@
       <FilterText>Members.member_type</FilterText>
       <Operator>oo</Operator>
       <Values>
-        <string>Associate Member</string>
-        <string>Centennial Member</string>
         <string>Member</string>
+        <string>Centennial Member</string>
+        <string>Associate Member</string>
       </Values>
       <Title>Members.Member Type</Title>
+    </ExpressViewFilter>
+    <ExpressViewFilter>
+      <FilterText>Members.metro_area_name</FilterText>
+      <Operator>net</Operator>
+      <Values>
+        <string>TVC</string>
+      </Values>
+      <Title>Members.Metro Area</Title>
     </ExpressViewFilter>
   </AllFilters>
   <AnyFilters />

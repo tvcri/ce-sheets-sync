@@ -4,7 +4,7 @@ An automated data pipeline that pulls membership, volunteer and service request 
 
 ## How It Works
 
-![Data flow diagram](docs/flow-diagram.svg)
+![Data flow diagram](docs/flow-diagram.png)
 
 The robot runs as a scheduled cron job (typically hourly). It polls an IMAP email inbox, waits for a Club Express membership report, parses the CSV, and updates 14 Google Sheets—one per metro area—with the latest member and volunteer information.
 

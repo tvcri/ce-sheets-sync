@@ -1,4 +1,4 @@
-<svg width="840" viewBox="0 0 840 580" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif">
+<svg width="1024" viewBox="0 0 1024 580" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif">
   <title>CE Sheets Sync data flow diagram</title>
   <desc>Club Express sends an automated CSV report to an IMAP email inbox. sync.js polls the inbox, retrieves the CSV, parses and transforms the data, then writes to 14 Google Sheets via the Google Sheets API — one per TVCRI metro area.</desc>
   <defs>

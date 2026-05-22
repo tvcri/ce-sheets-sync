@@ -201,6 +201,113 @@ test('getMetroAreaData', async (t) => {
     const hasAddedRecords = aquidneckData['Requests History'].some(r => r['Service Name'] === 'Member Added')
     assert.strictEqual(hasAddedRecords, false)
   })
+
+  await t.test('promotes past confirmed records to history with "Past Confirmed" status', () => {
+    const testParsed = {
+      'dump-member': [],
+      'dump-service-requested': [],
+      'dump-service-confirmed': [
+        {
+          'Metro Area': 'TestArea',
+          'Request Number': '1',
+          'Member': 'Alice',
+          'Status': 'Confirmed',
+          'Volunteer': 'Bob',
+          'Service Name': 'Ride',
+          'Transportation Type': 'Round Trip',
+          'Created Date/Time': '1/1/2020 10:00 AM',
+          'Start Date/Time': '1/1/2020 10:00 AM',
+          'Finish Date/Time': '1/1/2020 11:00 AM',
+          'Instructions': '',
+          'Description': '',
+          'Destination': '',
+          'Address': '',
+          'City': '',
+          'Phone': ''
+        }
+      ],
+      'dump-service-requested': [],
+      'dump-service-history': [],
+      'dump-service-provider': [],
+      'dump-service-provider-category': []
+    }
+    const testDate = new Date('2026-05-21')
+    const testData = getMetroAreaData(testParsed, 'TestArea', testDate)
+
+    assert.ok(testData['Requests History'].some(r => r['Request Number'] === '1' && r['Status'] === 'Past Confirmed'))
+  })
+
+  await t.test('excludes past confirmed records from "Requests Confirmed" tab', () => {
+    const testParsed = {
+      'dump-member': [],
+      'dump-service-requested': [],
+      'dump-service-confirmed': [
+        {
+          'Metro Area': 'TestArea',
+          'Request Number': '1',
+          'Member': 'Alice',
+          'Status': 'Confirmed',
+          'Volunteer': 'Bob',
+          'Service Name': 'Ride',
+          'Transportation Type': 'Round Trip',
+          'Created Date/Time': '1/1/2020 10:00 AM',
+          'Start Date/Time': '1/1/2020 10:00 AM',
+          'Finish Date/Time': '1/1/2020 11:00 AM',
+          'Instructions': '',
+          'Description': '',
+          'Destination': '',
+          'Address': '',
+          'City': '',
+          'Phone': ''
+        }
+      ],
+      'dump-service-requested': [],
+      'dump-service-history': [],
+      'dump-service-provider': [],
+      'dump-service-provider-category': []
+    }
+    const testDate = new Date('2026-05-21')
+    const testData = getMetroAreaData(testParsed, 'TestArea', testDate)
+
+    assert.ok(!testData['Requests Confirmed'].some(r => r['Request Number'] === '1'))
+  })
+
+  await t.test('keeps future confirmed records in "Requests Confirmed" tab', () => {
+    const testParsed = {
+      'dump-member': [],
+      'dump-service-requested': [],
+      'dump-service-confirmed': [
+        {
+          'Metro Area': 'TestArea',
+          'Request Number': '1',
+          'Member': 'Alice',
+          'Status': 'Confirmed',
+          'Volunteer': 'Bob',
+          'Service Name': 'Ride',
+          'Transportation Type': 'Round Trip',
+          'Created Date/Time': '5/21/2026 10:00 AM',
+          'Start Date/Time': '5/25/2026 10:00 AM',
+          'Finish Date/Time': '5/25/2026 11:00 AM',
+          'Instructions': '',
+          'Description': '',
+          'Destination': '',
+          'Address': '',
+          'City': '',
+          'Phone': ''
+        }
+      ],
+      'dump-service-requested': [],
+      'dump-service-history': [],
+      'dump-service-provider': [],
+      'dump-service-provider-category': []
+    }
+    const testDate = new Date('2026-05-21')
+    const testData = getMetroAreaData(testParsed, 'TestArea', testDate)
+
+    const confirmed = testData['Requests Confirmed'].find(r => r['Request Number'] === '1')
+    assert.ok(confirmed)
+    assert.strictEqual(confirmed['Status'], 'Confirmed')
+  })
 })
 
 test('getProviderServiceCounts', async (t) => {
@@ -250,6 +357,21 @@ test('getProviderServiceCounts', async (t) => {
     assert.strictEqual(counts[0].name, 'Eva')
     assert.strictEqual(counts[1].name, 'Frank')
   })
+
+  await t.test('counts "Past Confirmed" history records as completed', () => {
+    const history = [
+      { 'Volunteer': 'Davis, Frank', 'Status': 'Completed' },
+      { 'Volunteer': 'Davis, Frank', 'Status': 'Past Confirmed' },
+      { 'Volunteer': 'Taylor, Eva', 'Status': 'Past Confirmed' }
+    ]
+    const counts = getProviderServiceCounts(history, [])
+
+    const davis = counts.find(c => c.name === 'Davis, Frank')
+    assert.strictEqual(davis.completed, 2)
+
+    const taylor = counts.find(c => c.name === 'Taylor, Eva')
+    assert.strictEqual(taylor.completed, 1)
+  })
 })
 
 test('getMemberRequestCounts', async (t) => {
@@ -278,6 +400,22 @@ test('getMemberRequestCounts', async (t) => {
     assert.strictEqual(bob.open, 1)
     assert.strictEqual(bob.unmatched, 1)
     assert.strictEqual(bob.cancelled, 0)
+  })
+
+  await t.test('counts "Past Confirmed" history records as completed', () => {
+    const open = []
+    const confirmed = []
+    const history = [
+      { 'Member': 'Smith, Alice', 'Status': 'Completed' },
+      { 'Member': 'Johnson, Bob', 'Status': 'Past Confirmed' }
+    ]
+    const counts = getMemberRequestCounts(open, confirmed, history)
+
+    const alice = counts.find(c => c.name === 'Smith, Alice')
+    assert.strictEqual(alice.completed, 1)
+
+    const bob = counts.find(c => c.name === 'Johnson, Bob')
+    assert.strictEqual(bob.completed, 1)
   })
 })
 
@@ -339,6 +477,22 @@ test('getServiceNameCounts', async (t) => {
     assert.strictEqual(shopping.completed, 1)
     assert.strictEqual(shopping.unmatched, 0)
     assert.strictEqual(shopping.cancelled, 0)
+  })
+
+  await t.test('counts "Past Confirmed" history records as completed', () => {
+    const open = []
+    const confirmed = []
+    const history = [
+      { 'Service Name': 'Ride: Shopping', 'Status': 'Completed' },
+      { 'Service Name': 'Errand: Pharmacy', 'Status': 'Past Confirmed' }
+    ]
+    const counts = getServiceNameCounts(open, confirmed, history)
+
+    const shopping = counts.find(c => c.name === 'Ride: Shopping')
+    assert.strictEqual(shopping.completed, 1)
+
+    const pharmacy = counts.find(c => c.name === 'Errand: Pharmacy')
+    assert.strictEqual(pharmacy.completed, 1)
   })
 })
 

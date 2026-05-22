@@ -3,6 +3,7 @@ import assert from 'node:assert'
 import fs from 'fs'
 import {
   formatDateToISO,
+  convertToDisplayFormat,
   splitDumpChain,
   parseSection,
   flattenProviderCategories,
@@ -32,9 +33,9 @@ test('formatDateToISO', async (t) => {
     assert.strictEqual(formatDateToISO('1/5/2025'), '2025-01-05')
   })
 
-  await t.test('formats date with time', () => {
-    assert.strictEqual(formatDateToISO('5/10/2026 10:30 AM'), '2026-05-10 10:30 AM')
-    assert.strictEqual(formatDateToISO('3/15/1950 2:45 PM'), '1950-03-15 2:45 PM')
+  await t.test('formats date with time in 24-hour format (for sorting)', () => {
+    assert.strictEqual(formatDateToISO('5/10/2026 10:30 AM'), '2026-05-10 10:30')
+    assert.strictEqual(formatDateToISO('3/15/1950 2:45 PM'), '1950-03-15 14:45')
   })
 
   await t.test('returns original string if no date match', () => {
@@ -43,7 +44,14 @@ test('formatDateToISO', async (t) => {
 
   await t.test('strips surrounding quotes before parsing', () => {
     assert.strictEqual(formatDateToISO('"1/30/2026"'), '2026-01-30')
-    assert.strictEqual(formatDateToISO('"5/15/1950 2:30 PM"'), '1950-05-15 2:30 PM')
+    assert.strictEqual(formatDateToISO('"5/15/1950 2:30 PM"'), '1950-05-15 14:30')
+  })
+
+  await t.test('convertToDisplayFormat converts 24-hour to 12-hour for display', () => {
+    assert.strictEqual(convertToDisplayFormat('2026-05-10 10:30'), '2026-05-10 10:30 AM')
+    assert.strictEqual(convertToDisplayFormat('1950-03-15 14:45'), '1950-03-15 2:45 PM')
+    assert.strictEqual(convertToDisplayFormat('2026-05-10 00:15'), '2026-05-10 12:15 AM')
+    assert.strictEqual(convertToDisplayFormat('2026-05-10 12:00'), '2026-05-10 12:00 PM')
   })
 })
 
@@ -272,7 +280,7 @@ test('getMetroAreaData', async (t) => {
     assert.ok(!testData['Requests Confirmed'].some(r => r['Request Number'] === '1'))
   })
 
-  await t.test('keeps future confirmed records in "Requests Confirmed" tab', () => {
+  await t.test('keeps future confirmed records (after today) in "Requests Confirmed" tab', () => {
     const testParsed = {
       'dump-member': [],
       'dump-service-requested': [],
@@ -286,8 +294,8 @@ test('getMetroAreaData', async (t) => {
           'Service Name': 'Ride',
           'Transportation Type': 'Round Trip',
           'Created Date/Time': '5/21/2026 10:00 AM',
-          'Start Date/Time': '5/25/2026 10:00 AM',
-          'Finish Date/Time': '5/25/2026 11:00 AM',
+          'Start Date/Time': '5/22/2026 10:00 AM',
+          'Finish Date/Time': '5/22/2026 11:00 AM',
           'Instructions': '',
           'Description': '',
           'Destination': '',

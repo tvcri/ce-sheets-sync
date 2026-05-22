@@ -331,6 +331,60 @@
       </ReportFooterDropdownFontFormat>
     </ExpressViewColumn>
     <ExpressViewColumn>
+      <ColumnText>ServiceRequests.short_description</ColumnText>
+      <Width>-1</Width>
+      <AggType>None</AggType>
+      <DetailDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </DetailDataFormat>
+      <FootersDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </FootersDataFormat>
+      <HorizontalAlign>Left</HorizontalAlign>
+      <HeaderFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </HeaderFontFormat>
+      <DetailChunkFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </DetailChunkFontFormat>
+      <GroupFootersDropdownFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </GroupFootersDropdownFontFormat>
+      <ReportFooterDropdownFontFormat>
+        <Weight>Bold</Weight>
+        <Underline>None</Underline>
+      </ReportFooterDropdownFontFormat>
+    </ExpressViewColumn>
+    <ExpressViewColumn>
       <ColumnText>ServiceRequests.transportation_type</ColumnText>
       <Width>-1</Width>
       <AggType>None</AggType>
@@ -548,60 +602,6 @@
     </ExpressViewColumn>
     <ExpressViewColumn>
       <ColumnText>ServiceRequests.instructions</ColumnText>
-      <Width>-1</Width>
-      <AggType>None</AggType>
-      <DetailDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </DetailDataFormat>
-      <FootersDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </FootersDataFormat>
-      <HorizontalAlign>Left</HorizontalAlign>
-      <HeaderFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </HeaderFontFormat>
-      <DetailChunkFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </DetailChunkFontFormat>
-      <GroupFootersDropdownFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </GroupFootersDropdownFontFormat>
-      <ReportFooterDropdownFontFormat>
-        <Weight>Bold</Weight>
-        <Underline>None</Underline>
-      </ReportFooterDropdownFontFormat>
-    </ExpressViewColumn>
-    <ExpressViewColumn>
-      <ColumnText>ServiceRequests.short_description</ColumnText>
       <Width>-1</Width>
       <AggType>None</AggType>
       <DetailDataFormat>

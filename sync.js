@@ -5,7 +5,7 @@ import imapSimple from 'imap-simple'
 import { simpleParser } from 'mailparser'
 import fs from 'fs'
 import { google } from 'googleapis'
-import { parseDumpChain, getMetroAreaData } from './lib/dump-chain-processor.js'
+import { parseDumpChain, hasMetroAreaData, getMetroAreaData } from './lib/dump-chain-processor.js'
 import { syncMetroArea, syncHub } from './lib/sheets-sync.js'
 import { info, error, warn } from './lib/logger.js'
 import { productionMetroAreas, devMetroAreas, hubSpreadsheetId, devHubSpreadsheetId } from './lib/metro-areas.js'
@@ -125,6 +125,10 @@ async function syncSheets(csvContent, emailSentTimestamp) {
       const spreadsheetId = useTestSheet ? process.env.TEST_SPREADSHEET_ID : metroAreas[metroArea]
       if (!spreadsheetId) {
         warn(`Metro area not found in config`, { metroArea })
+        continue
+      }
+      if (!hasMetroAreaData(parsed, metroArea)) {
+        warn(`Metro area absent from CSV, skipping sheet update`, { metroArea })
         continue
       }
       const tabs = getMetroAreaData(parsed, metroArea)

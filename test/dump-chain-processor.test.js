@@ -9,6 +9,7 @@ import {
   flattenProviderCategories,
   removeMetroAreaColumn,
   parseDumpChain,
+  hasMetroAreaData,
   getMetroAreaData,
   getProviderServiceCounts,
   getMemberRequestCounts,
@@ -315,6 +316,63 @@ test('getMetroAreaData', async (t) => {
     const confirmed = testData['Requests Confirmed'].find(r => r['Request Number'] === '1')
     assert.ok(confirmed)
     assert.strictEqual(confirmed['Status'], 'Confirmed')
+  })
+})
+
+test('hasMetroAreaData', async (t) => {
+  const parsed = parseDumpChain(sampleCsv)
+
+  await t.test('returns true when metro area exists in CSV', () => {
+    assert.ok(hasMetroAreaData(parsed, 'Aquidneck'))
+  })
+
+  await t.test('returns false when metro area is absent from CSV', () => {
+    assert.ok(!hasMetroAreaData(parsed, 'NonexistentMetroArea'))
+  })
+
+  await t.test('returns false when parsed data is empty', () => {
+    const emptyParsed = {
+      'dump-member': [],
+      'dump-service-requested': [],
+      'dump-service-confirmed': [],
+      'dump-service-history': [],
+      'dump-service-history-unmatched': [],
+      'dump-service-provider': [],
+      'dump-service-provider-category': []
+    }
+    assert.ok(!hasMetroAreaData(emptyParsed, 'AnyMetroArea'))
+  })
+
+  await t.test('returns true if metro area is missing from one section but present in another', () => {
+    const parsedWithGap = {
+      'dump-member': [
+        { 'Metro Area': 'TestArea', 'Name': 'Alice' }
+      ],
+      'dump-service-requested': [], // TestArea absent here
+      'dump-service-confirmed': [],
+      'dump-service-history': [],
+      'dump-service-history-unmatched': [],
+      'dump-service-provider': [],
+      'dump-service-provider-category': []
+    }
+    // Should return true because TestArea exists in dump-member
+    assert.ok(hasMetroAreaData(parsedWithGap, 'TestArea'))
+  })
+
+  await t.test('returns true if metro area is in volunteers but no members', () => {
+    const parsedVolunteersOnly = {
+      'dump-member': [], // No members
+      'dump-service-requested': [],
+      'dump-service-confirmed': [],
+      'dump-service-history': [],
+      'dump-service-history-unmatched': [],
+      'dump-service-provider': [
+        { 'Metro Area': 'TestArea', 'Name': 'Bob' }
+      ],
+      'dump-service-provider-category': []
+    }
+    // Should return true because TestArea exists in dump-service-provider
+    assert.ok(hasMetroAreaData(parsedVolunteersOnly, 'TestArea'))
   })
 })
 

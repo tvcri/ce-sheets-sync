@@ -563,13 +563,14 @@ test('getServiceNameCounts', async (t) => {
 })
 
 test('getMemberVolunteerCounts', async (t) => {
-  await t.test('counts members only, volunteers only, and both when agreement exists', () => {
+  await t.test('counts members only, volunteers only, and both based on cross-section presence', () => {
+    // Is volunteer / IsMember field values are deliberately wrong — must be ignored
     const members = [
-      { 'Metro Area': 'Wood River', 'Name': 'Smith, Alice', 'Is volunteer': 'No' },
-      { 'Metro Area': 'Wood River', 'Name': 'Davis, Frank', 'Is volunteer': 'Yes' }
+      { 'Metro Area': 'Wood River', 'Name': 'Smith, Alice', 'Is volunteer': 'Yes' },  // wrong: not in providers
+      { 'Metro Area': 'Wood River', 'Name': 'Davis, Frank', 'Is volunteer': 'No' }    // wrong: is in providers
     ]
     const providers = [
-      { 'Metro Area': 'Wood River', 'Name': 'Davis, Frank', 'IsMember': 'true' }
+      { 'Metro Area': 'Wood River', 'Name': 'Davis, Frank', 'IsMember': 'false' }     // wrong: is in members
     ]
     const counts = getMemberVolunteerCounts(members, providers)
 
@@ -579,12 +580,13 @@ test('getMemberVolunteerCounts', async (t) => {
     assert.strictEqual(counts.total, 2)
   })
 
-  await t.test('reconciles inconsistent "Is volunteer" and "IsMember" flags', () => {
+  await t.test('person in both arrays is "both" regardless of field values', () => {
+    // IsMember says false, Is volunteer is blank — deliberately wrong, must still be "both"
     const members = [
       { 'Metro Area': 'Wood River', 'Name': 'Jones, Bob', 'Is volunteer': '' }
     ]
     const providers = [
-      { 'Metro Area': 'Wood River', 'Name': 'Jones, Bob', 'IsMember': 'true' }
+      { 'Metro Area': 'Wood River', 'Name': 'Jones, Bob', 'IsMember': 'false' }
     ]
     const counts = getMemberVolunteerCounts(members, providers)
 
@@ -605,16 +607,19 @@ test('getMemberVolunteerCounts', async (t) => {
     assert.strictEqual(counts.both, 0)
   })
 
-  await t.test('handles case-insensitive boolean values', () => {
+  await t.test('cross-metro isolation: same name in different metro areas is not "both"', () => {
     const members = [
-      { 'Metro Area': 'Wood River', 'Name': 'White, Dave', 'Is volunteer': 'YES' }
+      { 'Metro Area': 'Wood River', 'Name': 'Smith, Alice', 'Is volunteer': 'Yes' }
     ]
     const providers = [
-      { 'Metro Area': 'Wood River', 'Name': 'White, Dave', 'IsMember': 'True' }
+      { 'Metro Area': 'Aquidneck', 'Name': 'Smith, Alice', 'IsMember': 'true' }
     ]
     const counts = getMemberVolunteerCounts(members, providers)
 
-    assert.strictEqual(counts.both, 1)
+    assert.strictEqual(counts.membersOnly, 1)
+    assert.strictEqual(counts.volunteersOnly, 1)
+    assert.strictEqual(counts.both, 0)
+    assert.strictEqual(counts.total, 2)
   })
 
   await t.test('returns zero counts when given empty arrays', () => {
@@ -720,5 +725,29 @@ test('per-metro aggregation integrity', async (t) => {
       assert.ok(sample.hasOwnProperty('unmatched'), 'member count should have unmatched')
       assert.ok(sample.hasOwnProperty('cancelled'), 'member count should have cancelled')
     }
+  })
+
+  await t.test('Hub cross-metro member/volunteer aggregation', () => {
+    const parsed = parseDumpChain(sampleCsv)
+
+    // Simulate syncHub's call: full unfiltered arrays with all metro areas
+    const allMembers = parsed['dump-member'] || []
+    const allProviders = parsed['dump-service-provider'] || []
+    const counts = getMemberVolunteerCounts(allMembers, allProviders)
+
+    // Verify all three categories are counted
+    assert.ok(counts.membersOnly >= 0, 'membersOnly should be non-negative')
+    assert.ok(counts.volunteersOnly >= 0, 'volunteersOnly should be non-negative')
+    assert.ok(counts.both >= 0, 'both should be non-negative')
+    assert.strictEqual(counts.total, counts.membersOnly + counts.volunteersOnly + counts.both, 'total should equal sum of categories')
+
+    // With the sample fixture, we expect:
+    // - Some members who are not volunteers (membersOnly > 0)
+    // - Some volunteers who are not members (volunteersOnly > 0)
+    // - Some who appear in both (both > 0)
+    // This validates cross-section matching works across all metro areas
+    assert.ok(counts.membersOnly > 0, 'fixture should have members who are not volunteers')
+    assert.ok(counts.volunteersOnly > 0, 'fixture should have volunteers who are not members')
+    assert.ok(counts.both > 0, 'fixture should have people in both members and volunteers')
   })
 })

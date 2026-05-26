@@ -45,7 +45,7 @@ async function syncSheetWithRetry(sheets, metroArea, spreadsheetId, tabs, emailT
     try {
       info(`Syncing metro area`, { metroArea, attempt, maxRetries })
 
-      const syncPromise = syncMetroArea(sheets, spreadsheetId, tabs, emailTimestamp, metroArea, parsed)
+      const syncPromise = syncMetroArea(sheets, spreadsheetId, { tabs, emailTimestamp, metroArea, parsed })
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs)
       )

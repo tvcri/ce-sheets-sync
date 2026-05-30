@@ -655,61 +655,7 @@
       </ReportFooterDropdownFontFormat>
     </ExpressViewColumn>
     <ExpressViewColumn>
-      <ColumnText>Users.date_joined</ColumnText>
-      <Width>-1</Width>
-      <AggType>None</AggType>
-      <DetailDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </DetailDataFormat>
-      <FootersDataFormat>
-        <decimalSymbol>.</decimalSymbol>
-        <Type>General</Type>
-        <DecimalPlaces>0</DecimalPlaces>
-        <UseSeparator>true</UseSeparator>
-        <SeparatorSymbol>,</SeparatorSymbol>
-        <UseCurrency>false</UseCurrency>
-        <CurrencySymbol>$</CurrencySymbol>
-        <DecimalSymbol>.</DecimalSymbol>
-        <BlankWhenZero>false</BlankWhenZero>
-        <UsePercentSign>false</UsePercentSign>
-        <UseNegativeSymbol>true</UseNegativeSymbol>
-        <UseNegativeParens>false</UseNegativeParens>
-        <NegativeColor />
-        <DateTimeFormat />
-      </FootersDataFormat>
-      <HorizontalAlign>Left</HorizontalAlign>
-      <HeaderFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </HeaderFontFormat>
-      <DetailChunkFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </DetailChunkFontFormat>
-      <GroupFootersDropdownFontFormat>
-        <Weight>Normal</Weight>
-        <Underline>None</Underline>
-      </GroupFootersDropdownFontFormat>
-      <ReportFooterDropdownFontFormat>
-        <Weight>Bold</Weight>
-        <Underline>None</Underline>
-      </ReportFooterDropdownFontFormat>
-    </ExpressViewColumn>
-    <ExpressViewColumn>
-      <ColumnText>=If({ServiceProviders.service_provider_type}="Member Volunteer",True(), False())</ColumnText>
+      <ColumnText>=""</ColumnText>
       <Width>-1</Width>
       <AggType>None</AggType>
       <FormulaTitle>IsMember</FormulaTitle>
@@ -799,10 +745,9 @@
       <FilterText>Users.member_type</FilterText>
       <Operator>noo</Operator>
       <Values>
-        <string>Village Office</string>
-        <string>Staff</string>
         <string>Pseudo</string>
-        <string>CE Volunteer </string>
+        <string>Staff</string>
+        <string>Village Office</string>
       </Values>
       <Title>Users.Member Type</Title>
     </ExpressViewFilter>
@@ -879,7 +824,7 @@
   <UseTopN>false</UseTopN>
   <IncludeDetailRows>true</IncludeDetailRows>
   <ShowGroupFooters>true</ShowGroupFooters>
-  <ShowReportFooter>false</ShowReportFooter>
+  <ShowReportFooter>true</ShowReportFooter>
   <Id>d7ecf0fd-0e7e-6405-6aed-2052f1d0ac39</Id>
   <Description />
   <FilterDescription />

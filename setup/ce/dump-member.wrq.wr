@@ -930,7 +930,7 @@
       </ReportFooterDropdownFontFormat>
     </ExpressViewColumn>
     <ExpressViewColumn>
-      <ColumnText>Questions.Member Is A Volunteer</ColumnText>
+      <ColumnText>=""</ColumnText>
       <Width>-1</Width>
       <AggType>None</AggType>
       <FormulaTitle>Is volunteer</FormulaTitle>
@@ -1147,6 +1147,60 @@
       </ReportFooterDropdownFontFormat>
     </ExpressViewColumn>
     <ExpressViewColumn>
+      <ColumnText>Members.member_type</ColumnText>
+      <Width>-1</Width>
+      <AggType>None</AggType>
+      <DetailDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </DetailDataFormat>
+      <FootersDataFormat>
+        <decimalSymbol>.</decimalSymbol>
+        <Type>General</Type>
+        <DecimalPlaces>0</DecimalPlaces>
+        <UseSeparator>true</UseSeparator>
+        <SeparatorSymbol>,</SeparatorSymbol>
+        <UseCurrency>false</UseCurrency>
+        <CurrencySymbol>$</CurrencySymbol>
+        <DecimalSymbol>.</DecimalSymbol>
+        <BlankWhenZero>false</BlankWhenZero>
+        <UsePercentSign>false</UsePercentSign>
+        <UseNegativeSymbol>true</UseNegativeSymbol>
+        <UseNegativeParens>false</UseNegativeParens>
+        <NegativeColor />
+        <DateTimeFormat />
+      </FootersDataFormat>
+      <HorizontalAlign>Left</HorizontalAlign>
+      <HeaderFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </HeaderFontFormat>
+      <DetailChunkFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </DetailChunkFontFormat>
+      <GroupFootersDropdownFontFormat>
+        <Weight>Normal</Weight>
+        <Underline>None</Underline>
+      </GroupFootersDropdownFontFormat>
+      <ReportFooterDropdownFontFormat>
+        <Weight>Bold</Weight>
+        <Underline>None</Underline>
+      </ReportFooterDropdownFontFormat>
+    </ExpressViewColumn>
+    <ExpressViewColumn>
       <ColumnText>Members.member_number</ColumnText>
       <Width>-1</Width>
       <AggType>Count</AggType>
@@ -1214,9 +1268,9 @@
       <FilterText>Members.member_type</FilterText>
       <Operator>oo</Operator>
       <Values>
-        <string>Member</string>
-        <string>Centennial Member</string>
         <string>Associate Member</string>
+        <string>Centennial Member</string>
+        <string>Member</string>
       </Values>
       <Title>Members.Member Type</Title>
     </ExpressViewFilter>

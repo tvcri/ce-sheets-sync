@@ -5,7 +5,7 @@ import imapSimple from 'imap-simple'
 import { simpleParser } from 'mailparser'
 import fs from 'fs'
 import { google } from 'googleapis'
-import { parseDumpChain, hasMetroAreaData, getMetroAreaData } from './lib/dump-chain-processor.js'
+import { DumpChainData, hasMetroAreaData, getMetroAreaData } from './lib/dump-chain-processor.js'
 import { syncMetroArea, syncHub } from './lib/sheets-sync.js'
 import { info, error, warn } from './lib/logger.js'
 import { productionMetroAreas, devMetroAreas, hubSpreadsheetId, devHubSpreadsheetId } from './lib/metro-areas.js'
@@ -262,14 +262,10 @@ try {
   }
 
   if (csvContent) {
-    const parsed = parseDumpChain(csvContent)
-    if (Object.keys(parsed).length === 0) {
-      warn(`CSV produced no parseable sections, skipping sync`)
-    } else {
-      const sheets = createSheetsClient()
-      await syncSheets(sheets, parsed, config, timestamp)
-      info(`File processing complete`)
-    }
+    const data = DumpChainData.from(csvContent)
+    const sheets = createSheetsClient()
+    await syncSheets(sheets, data.parsed, config, timestamp)
+    info(`File processing complete`)
   }
 
   process.exit(0)

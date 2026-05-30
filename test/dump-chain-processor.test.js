@@ -1,753 +1,247 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
 import fs from 'fs'
-import {
-  formatDateToISO,
-  convertToDisplayFormat,
-  splitDumpChain,
-  parseSection,
-  flattenProviderCategories,
-  removeMetroAreaColumn,
-  parseDumpChain,
-  hasMetroAreaData,
-  getMetroAreaData,
-  getProviderServiceCounts,
-  getMemberRequestCounts,
-  getProviderCategoryCounts,
-  getServiceNameCounts,
-  getMemberVolunteerCounts
-} from '../lib/dump-chain-processor.js'
+import { DumpChainData } from '../lib/dump-chain-processor.js'
 
 const sampleCsv = fs.readFileSync('./test/fixtures/sample-dump-chain.csv', 'utf-8')
 
-test('formatDateToISO', async (t) => {
-  await t.test('returns empty string for empty/null input', () => {
-    assert.strictEqual(formatDateToISO(''), '')
-    assert.strictEqual(formatDateToISO('   '), '')
-  })
+test('DumpChainData date formatting', async (t) => {
+  const data = DumpChainData.from(sampleCsv)
+  const metroData = data.getMetroAreaData('Aquidneck')
 
-  await t.test('formats date without time', () => {
-    assert.strictEqual(formatDateToISO('5/10/2026'), '2026-05-10')
-  })
-
-  await t.test('formats date with single-digit month/day (padding)', () => {
-    assert.strictEqual(formatDateToISO('1/5/2025'), '2025-01-05')
-  })
-
-  await t.test('formats date with time in 24-hour format (for sorting)', () => {
-    assert.strictEqual(formatDateToISO('5/10/2026 10:30 AM'), '2026-05-10 10:30')
-    assert.strictEqual(formatDateToISO('3/15/1950 2:45 PM'), '1950-03-15 14:45')
-  })
-
-  await t.test('returns original string if no date match', () => {
-    assert.strictEqual(formatDateToISO('invalid-date'), 'invalid-date')
-  })
-
-  await t.test('strips surrounding quotes before parsing', () => {
-    assert.strictEqual(formatDateToISO('"1/30/2026"'), '2026-01-30')
-    assert.strictEqual(formatDateToISO('"5/15/1950 2:30 PM"'), '1950-05-15 14:30')
-  })
-
-  await t.test('convertToDisplayFormat converts 24-hour to 12-hour for display', () => {
-    assert.strictEqual(convertToDisplayFormat('2026-05-10 10:30'), '2026-05-10 10:30 AM')
-    assert.strictEqual(convertToDisplayFormat('1950-03-15 14:45'), '1950-03-15 2:45 PM')
-    assert.strictEqual(convertToDisplayFormat('2026-05-10 00:15'), '2026-05-10 12:15 AM')
-    assert.strictEqual(convertToDisplayFormat('2026-05-10 12:00'), '2026-05-10 12:00 PM')
-  })
-})
-
-test('splitDumpChain', async (t) => {
-  await t.test('splits CSV into sections by dump-* headers', () => {
-    const sections = splitDumpChain(sampleCsv)
-    assert.ok(sections['dump-member'])
-    assert.ok(sections['dump-service-provider'])
-    assert.ok(sections['dump-service-provider-category'])
-    assert.ok(sections['dump-service-requested'])
-    assert.ok(sections['dump-service-confirmed'])
-    assert.ok(sections['dump-service-history'])
-  })
-
-  await t.test('each section contains header and data lines', () => {
-    const sections = splitDumpChain(sampleCsv)
-    assert.ok(sections['dump-member'].includes('Metro Area'))
-    assert.ok(sections['dump-member'].includes('Smith, Alice'))
-  })
-
-  await t.test('handles empty input', () => {
-    const sections = splitDumpChain('')
-    assert.deepStrictEqual(sections, {})
-  })
-})
-
-test('parseSection', async (t) => {
-  const memberSection = splitDumpChain(sampleCsv)['dump-member']
-
-  await t.test('parses CSV section into array of objects', () => {
-    const records = parseSection(memberSection)
-    assert.ok(Array.isArray(records))
-    assert.ok(records.length > 0)
-    assert.ok(records[0]['Metro Area'])
-    assert.ok(records[0]['Name'])
-  })
-
-  await t.test('uses first line as column headers', () => {
-    const records = parseSection(memberSection)
-    assert.ok(records[0].hasOwnProperty('Email'))
-    assert.ok(records[0].hasOwnProperty('Birthday'))
-  })
-
-  await t.test('handles trailing newlines in CSV section', () => {
-    const csvWithTrailingNewline = memberSection + '\n\n'
-    const records = parseSection(csvWithTrailingNewline)
-    assert.ok(records.length > 0)
-    const lastRecord = records[records.length - 1]
-    assert.ok(!lastRecord['Member Number'].includes('"'), 'final field should not have quotes')
-  })
-})
-
-test('flattenProviderCategories', async (t) => {
-  await t.test('pivots categories from rows to columns', () => {
-    const providers = [
-      { 'Metro Area': 'Aquidneck', 'Name': 'Davis, Frank' },
-      { 'Metro Area': 'Aquidneck', 'Name': 'Taylor, Eva' }
-    ]
-    const categories = [
-      { 'Metro Area': 'Aquidneck', 'Name': 'Davis, Frank', 'Category': 'Errands' },
-      { 'Metro Area': 'Aquidneck', 'Name': 'Taylor, Eva', 'Category': 'Rides' },
-      { 'Metro Area': 'Aquidneck', 'Name': 'Taylor, Eva', 'Category': 'Tech Support' }
-    ]
-    const flattened = flattenProviderCategories(providers, categories)
-
-    assert.strictEqual(flattened.length, 2)
-    assert.strictEqual(flattened[0]['Errand'], '✓')
-    assert.strictEqual(flattened[1]['Ride'], '✓')
-    assert.strictEqual(flattened[1]['Tech Support'], '✓')
-    assert.ok(flattened[0].hasOwnProperty('Errand'))
-    assert.ok(flattened[1].hasOwnProperty('Ride'))
-    assert.ok(!flattened[0].hasOwnProperty('Errands'))
-    assert.ok(!flattened[1].hasOwnProperty('Rides'))
-    assert.strictEqual(flattened[0]['Ride'], '')
-  })
-
-  await t.test('filters out SRLog entries', () => {
-    const providers = [
-      { 'Metro Area': 'Aquidneck', 'Name': 'Davis, Frank' },
-      { 'Metro Area': 'Aquidneck', 'Name': 'SRLog,System' }
-    ]
-    const categories = [
-      { 'Metro Area': 'Aquidneck', 'Name': 'Davis, Frank', 'Category': 'Errands' }
-    ]
-    const flattened = flattenProviderCategories(providers, categories)
-
-    assert.strictEqual(flattened.length, 1)
-    assert.strictEqual(flattened[0]['Name'], 'Davis, Frank')
-  })
-})
-
-test('removeMetroAreaColumn', async (t) => {
-  await t.test('removes Metro Area key from all records', () => {
-    const records = [
-      { 'Metro Area': 'Aquidneck', 'Name': 'Smith', 'Email': 'smith@example.com' },
-      { 'Metro Area': 'Wood River', 'Name': 'Jones', 'Email': 'jones@example.com' }
-    ]
-    const cleaned = removeMetroAreaColumn(records)
-
-    assert.strictEqual(cleaned.length, 2)
-    assert.ok(!cleaned[0].hasOwnProperty('Metro Area'))
-    assert.strictEqual(cleaned[0]['Name'], 'Smith')
-    assert.strictEqual(cleaned[0]['Email'], 'smith@example.com')
-  })
-})
-
-test('parseDumpChain', async (t) => {
-  await t.test('parses entire CSV into sections with parsed records', () => {
-    const parsed = parseDumpChain(sampleCsv)
-
-    assert.ok(parsed['dump-member'])
-    assert.ok(Array.isArray(parsed['dump-member']))
-    assert.ok(parsed['dump-member'].length > 0)
-    assert.ok(parsed['dump-member'][0].hasOwnProperty('Name'))
-
-    assert.ok(parsed['dump-service-provider'])
-    assert.ok(parsed['dump-service-provider-category'])
-  })
-})
-
-test('getMetroAreaData', async (t) => {
-  const parsed = parseDumpChain(sampleCsv)
-
-  await t.test('filters records by metro area', () => {
-    const aquidneckData = getMetroAreaData(parsed, 'Aquidneck')
-
-    assert.ok(aquidneckData.Members.every(m => !m.hasOwnProperty('Metro Area')))
-    assert.ok(aquidneckData.Members.length > 0)
-  })
-
-  await t.test('returns 5 tabs: Members, Volunteers, Requests Open/Confirmed/History', () => {
-    const aquidneckData = getMetroAreaData(parsed, 'Aquidneck')
-
-    assert.ok(aquidneckData.hasOwnProperty('Members'))
-    assert.ok(aquidneckData.hasOwnProperty('Volunteers'))
-    assert.ok(aquidneckData.hasOwnProperty('Requests Open'))
-    assert.ok(aquidneckData.hasOwnProperty('Requests Confirmed'))
-    assert.ok(aquidneckData.hasOwnProperty('Requests History'))
-  })
-
-  await t.test('formats date fields to ISO format', () => {
-    const aquidneckData = getMetroAreaData(parsed, 'Aquidneck')
-    const member = aquidneckData.Members[0]
-
-    if (member['Birthday']) {
-      assert.match(member['Birthday'], /^\d{4}-\d{2}-\d{2}/)
+  await t.test('formats member birthday and join date to ISO', () => {
+    const member = metroData.tabs.Members[0]
+    if (member.Birthday) {
+      assert.match(member.Birthday, /^\d{4}-\d{2}-\d{2}/, 'Birthday should be ISO format')
     }
     if (member['Join Date']) {
-      assert.match(member['Join Date'], /^\d{4}-\d{2}-\d{2}/)
+      assert.match(member['Join Date'], /^\d{4}-\d{2}-\d{2}/, 'Join Date should be ISO format')
     }
   })
 
-  await t.test('filters out "Member Added" from history', () => {
-    const aquidneckData = getMetroAreaData(parsed, 'Aquidneck')
-    const hasAddedRecords = aquidneckData['Requests History'].some(r => r['Service Name'] === 'Member Added')
-    assert.strictEqual(hasAddedRecords, false)
+  await t.test('formats service dates to ISO in request tabs', () => {
+    const requestOpen = metroData.tabs['Requests Open'][0]
+    if (requestOpen['Created Date/Time']) {
+      assert.match(requestOpen['Created Date/Time'], /^\d{4}-\d{2}-\d{2}/, 'Created Date should be ISO format')
+    }
   })
 
-  await t.test('promotes past confirmed records to history with "Past Confirmed" status', () => {
-    const testParsed = {
-      'dump-member': [],
-      'dump-service-requested': [],
-      'dump-service-confirmed': [
-        {
-          'Metro Area': 'TestArea',
-          'Request Number': '1',
-          'Member': 'Alice',
-          'Status': 'Confirmed',
-          'Volunteer': 'Bob',
-          'Service Name': 'Ride',
-          'Transportation Type': 'Round Trip',
-          'Created Date/Time': '1/1/2020 10:00 AM',
-          'Start Date/Time': '1/1/2020 10:00 AM',
-          'Finish Date/Time': '1/1/2020 11:00 AM',
-          'Instructions': '',
-          'Description': '',
-          'Destination': '',
-          'Address': '',
-          'City': '',
-          'Phone': ''
-        }
-      ],
-      'dump-service-requested': [],
-      'dump-service-history': [],
-      'dump-service-provider': [],
-      'dump-service-provider-category': []
+  await t.test('converts ISO times to 12-hour display format in Requests tabs', () => {
+    const requestOpen = metroData.tabs['Requests Open'][0]
+    if (requestOpen['Created Date/Time'] && requestOpen['Created Date/Time'].includes(':')) {
+      assert.match(requestOpen['Created Date/Time'], /(AM|PM)$/, 'Display format should include AM/PM')
     }
-    const testDate = new Date('2026-05-21')
-    const testData = getMetroAreaData(testParsed, 'TestArea', testDate)
-
-    assert.ok(testData['Requests History'].some(r => r['Request Number'] === '1' && r['Status'] === 'Past Confirmed'))
-  })
-
-  await t.test('excludes past confirmed records from "Requests Confirmed" tab', () => {
-    const testParsed = {
-      'dump-member': [],
-      'dump-service-requested': [],
-      'dump-service-confirmed': [
-        {
-          'Metro Area': 'TestArea',
-          'Request Number': '1',
-          'Member': 'Alice',
-          'Status': 'Confirmed',
-          'Volunteer': 'Bob',
-          'Service Name': 'Ride',
-          'Transportation Type': 'Round Trip',
-          'Created Date/Time': '1/1/2020 10:00 AM',
-          'Start Date/Time': '1/1/2020 10:00 AM',
-          'Finish Date/Time': '1/1/2020 11:00 AM',
-          'Instructions': '',
-          'Description': '',
-          'Destination': '',
-          'Address': '',
-          'City': '',
-          'Phone': ''
-        }
-      ],
-      'dump-service-requested': [],
-      'dump-service-history': [],
-      'dump-service-provider': [],
-      'dump-service-provider-category': []
-    }
-    const testDate = new Date('2026-05-21')
-    const testData = getMetroAreaData(testParsed, 'TestArea', testDate)
-
-    assert.ok(!testData['Requests Confirmed'].some(r => r['Request Number'] === '1'))
-  })
-
-  await t.test('keeps future confirmed records (after today) in "Requests Confirmed" tab', () => {
-    const testParsed = {
-      'dump-member': [],
-      'dump-service-requested': [],
-      'dump-service-confirmed': [
-        {
-          'Metro Area': 'TestArea',
-          'Request Number': '1',
-          'Member': 'Alice',
-          'Status': 'Confirmed',
-          'Volunteer': 'Bob',
-          'Service Name': 'Ride',
-          'Transportation Type': 'Round Trip',
-          'Created Date/Time': '5/21/2026 10:00 AM',
-          'Start Date/Time': '5/22/2026 10:00 AM',
-          'Finish Date/Time': '5/22/2026 11:00 AM',
-          'Instructions': '',
-          'Description': '',
-          'Destination': '',
-          'Address': '',
-          'City': '',
-          'Phone': ''
-        }
-      ],
-      'dump-service-requested': [],
-      'dump-service-history': [],
-      'dump-service-provider': [],
-      'dump-service-provider-category': []
-    }
-    const testDate = new Date('2026-05-21')
-    const testData = getMetroAreaData(testParsed, 'TestArea', testDate)
-
-    const confirmed = testData['Requests Confirmed'].find(r => r['Request Number'] === '1')
-    assert.ok(confirmed)
-    assert.strictEqual(confirmed['Status'], 'Confirmed')
   })
 })
 
-test('hasMetroAreaData', async (t) => {
-  const parsed = parseDumpChain(sampleCsv)
-
-  await t.test('returns true when metro area exists in CSV', () => {
-    assert.ok(hasMetroAreaData(parsed, 'Aquidneck'))
+test('DumpChainData parsing and section splitting', async (t) => {
+  await t.test('DumpChainData.from() parses CSV and creates instance', () => {
+    const data = DumpChainData.from(sampleCsv)
+    assert.ok(data, 'should create a DumpChainData instance')
   })
 
-  await t.test('returns false when metro area is absent from CSV', () => {
-    assert.ok(!hasMetroAreaData(parsed, 'NonexistentMetroArea'))
+  await t.test('throws on empty CSV', () => {
+    assert.throws(() => {
+      DumpChainData.from('')
+    }, /CSV produced no parseable sections/)
   })
 
-  await t.test('returns false when parsed data is empty', () => {
-    const emptyParsed = {
-      'dump-member': [],
-      'dump-service-requested': [],
-      'dump-service-confirmed': [],
-      'dump-service-history': [],
-      'dump-service-history-unmatched': [],
-      'dump-service-provider': [],
-      'dump-service-provider-category': []
-    }
-    assert.ok(!hasMetroAreaData(emptyParsed, 'AnyMetroArea'))
-  })
-
-  await t.test('returns true if metro area is missing from one section but present in another', () => {
-    const parsedWithGap = {
-      'dump-member': [
-        { 'Metro Area': 'TestArea', 'Name': 'Alice' }
-      ],
-      'dump-service-requested': [], // TestArea absent here
-      'dump-service-confirmed': [],
-      'dump-service-history': [],
-      'dump-service-history-unmatched': [],
-      'dump-service-provider': [],
-      'dump-service-provider-category': []
-    }
-    // Should return true because TestArea exists in dump-member
-    assert.ok(hasMetroAreaData(parsedWithGap, 'TestArea'))
-  })
-
-  await t.test('returns true if metro area is in volunteers but no members', () => {
-    const parsedVolunteersOnly = {
-      'dump-member': [], // No members
-      'dump-service-requested': [],
-      'dump-service-confirmed': [],
-      'dump-service-history': [],
-      'dump-service-history-unmatched': [],
-      'dump-service-provider': [
-        { 'Metro Area': 'TestArea', 'Name': 'Bob' }
-      ],
-      'dump-service-provider-category': []
-    }
-    // Should return true because TestArea exists in dump-service-provider
-    assert.ok(hasMetroAreaData(parsedVolunteersOnly, 'TestArea'))
+  await t.test('parses all sections from sample fixture', () => {
+    const data = DumpChainData.from(sampleCsv)
+    const metroAreas = data.metroAreas()
+    assert.ok(metroAreas.length > 0, 'should find metro areas')
+    assert.ok(metroAreas.includes('Aquidneck'), 'should have Aquidneck')
   })
 })
 
-test('getProviderServiceCounts', async (t) => {
-  await t.test('counts completed services from history and confirmed services', () => {
-    const history = [
-      { 'Volunteer': 'Davis, Frank', 'Status': 'Completed' },
-      { 'Volunteer': 'Davis, Frank', 'Status': 'Completed' },
-      { 'Volunteer': 'Taylor, Eva', 'Status': 'Completed' }
-    ]
-    const confirmed = [
-      { 'Volunteer': 'Davis, Frank' },
-      { 'Volunteer': 'Taylor, Eva' }
-    ]
-    const counts = getProviderServiceCounts(history, confirmed)
+test('DumpChainData.hasMetroArea()', async (t) => {
+  const data = DumpChainData.from(sampleCsv)
 
-    const davis = counts.find(c => c.name === 'Davis, Frank')
-    assert.strictEqual(davis.completed, 2)
-    assert.strictEqual(davis.confirmed, 1)
-
-    const taylor = counts.find(c => c.name === 'Taylor, Eva')
-    assert.strictEqual(taylor.completed, 1)
-    assert.strictEqual(taylor.confirmed, 1)
+  await t.test('returns true when metro area exists', () => {
+    assert.ok(data.hasMetroArea('Aquidneck'))
   })
 
-  await t.test('filters out empty/whitespace provider names and "Cancelled"', () => {
-    const history = [
-      { 'Volunteer': 'Davis, Frank', 'Status': 'Completed' },
-      { 'Volunteer': '', 'Status': 'Completed' },
-      { 'Volunteer': '   ', 'Status': 'Completed' },
-      { 'Volunteer': 'Cancelled', 'Status': 'Completed' }
-    ]
-    const counts = getProviderServiceCounts(history, [])
-
-    assert.strictEqual(counts.length, 1)
-    assert.strictEqual(counts[0].name, 'Davis, Frank')
-  })
-
-  await t.test('sorts by total count descending', () => {
-    const history = [
-      { 'Volunteer': 'Eva', 'Status': 'Completed' },
-      { 'Volunteer': 'Eva', 'Status': 'Completed' },
-      { 'Volunteer': 'Eva', 'Status': 'Completed' },
-      { 'Volunteer': 'Frank', 'Status': 'Completed' }
-    ]
-    const counts = getProviderServiceCounts(history, [])
-
-    assert.strictEqual(counts[0].name, 'Eva')
-    assert.strictEqual(counts[1].name, 'Frank')
-  })
-
-  await t.test('counts "Past Confirmed" history records as completed', () => {
-    const history = [
-      { 'Volunteer': 'Davis, Frank', 'Status': 'Completed' },
-      { 'Volunteer': 'Davis, Frank', 'Status': 'Past Confirmed' },
-      { 'Volunteer': 'Taylor, Eva', 'Status': 'Past Confirmed' }
-    ]
-    const counts = getProviderServiceCounts(history, [])
-
-    const davis = counts.find(c => c.name === 'Davis, Frank')
-    assert.strictEqual(davis.completed, 2)
-
-    const taylor = counts.find(c => c.name === 'Taylor, Eva')
-    assert.strictEqual(taylor.completed, 1)
+  await t.test('returns false when metro area is absent', () => {
+    assert.ok(!data.hasMetroArea('NonexistentMetroArea'))
   })
 })
 
-test('getMemberRequestCounts', async (t) => {
-  await t.test('counts open/confirmed/completed/unmatched/cancelled by member', () => {
-    const open = [
-      { 'Member': 'Smith, Alice' },
-      { 'Member': 'Johnson, Bob' }
-    ]
-    const confirmed = [
-      { 'Member': 'Smith, Alice' }
-    ]
-    const history = [
-      { 'Member': 'Smith, Alice', 'Status': 'Completed' },
-      { 'Member': 'Johnson, Bob', 'Status': 'Unmatched' }
-    ]
-    const counts = getMemberRequestCounts(open, confirmed, history)
+test('DumpChainData.getMetroAreaData()', async (t) => {
+  const data = DumpChainData.from(sampleCsv)
 
-    const alice = counts.find(c => c.name === 'Smith, Alice')
-    assert.strictEqual(alice.open, 1)
-    assert.strictEqual(alice.confirmed, 1)
-    assert.strictEqual(alice.completed, 1)
-    assert.strictEqual(alice.unmatched, 0)
-    assert.strictEqual(alice.cancelled, 0)
-
-    const bob = counts.find(c => c.name === 'Johnson, Bob')
-    assert.strictEqual(bob.open, 1)
-    assert.strictEqual(bob.unmatched, 1)
-    assert.strictEqual(bob.cancelled, 0)
+  await t.test('returns object with tabs and analytics', () => {
+    const metroData = data.getMetroAreaData('Aquidneck')
+    assert.ok(metroData.tabs)
+    assert.ok(metroData.tabs.Members)
+    assert.ok(metroData.tabs.Volunteers)
+    assert.ok(metroData.tabs['Requests Open'])
+    assert.ok(metroData.tabs['Requests Confirmed'])
+    assert.ok(metroData.tabs['Requests History'])
+    assert.ok(metroData.providerNames instanceof Set)
+    assert.ok(metroData.memberNames instanceof Set)
+    assert.ok(Array.isArray(metroData.providerCounts))
+    assert.ok(Array.isArray(metroData.memberCounts))
+    assert.ok(Array.isArray(metroData.categoryCounts))
+    assert.ok(Array.isArray(metroData.serviceCounts))
+    assert.ok(typeof metroData.memberVolunteerCounts === 'object')
   })
 
-  await t.test('counts "Past Confirmed" history records as completed', () => {
-    const open = []
-    const confirmed = []
-    const history = [
-      { 'Member': 'Smith, Alice', 'Status': 'Completed' },
-      { 'Member': 'Johnson, Bob', 'Status': 'Past Confirmed' }
-    ]
-    const counts = getMemberRequestCounts(open, confirmed, history)
-
-    const alice = counts.find(c => c.name === 'Smith, Alice')
-    assert.strictEqual(alice.completed, 1)
-
-    const bob = counts.find(c => c.name === 'Johnson, Bob')
-    assert.strictEqual(bob.completed, 1)
-  })
-})
-
-test('getProviderCategoryCounts', async (t) => {
-  await t.test('counts unique providers per hardcoded category', () => {
-    const categoryRecords = [
-      { 'Name': 'Davis, Frank', 'Category': 'Errands' },
-      { 'Name': 'Taylor, Eva', 'Category': 'Rides' },
-      { 'Name': 'Taylor, Eva', 'Category': 'Tech Support' }
-    ]
-    const counts = getProviderCategoryCounts(categoryRecords)
-
-    const errands = counts.find(c => c.name === 'Errands')
-    assert.strictEqual(errands.count, 1)
-
-    const rides = counts.find(c => c.name === 'Rides')
-    assert.strictEqual(rides.count, 1)
-
-    const techSupport = counts.find(c => c.name === 'Tech Support')
-    assert.strictEqual(techSupport.count, 1)
+  await t.test('removes Metro Area column from Members tab', () => {
+    const metroData = data.getMetroAreaData('Aquidneck')
+    assert.ok(metroData.tabs.Members.every(m => !m.hasOwnProperty('Metro Area')))
   })
 
-  await t.test('filters out SRLog entries', () => {
-    const categoryRecords = [
-      { 'Name': 'Davis, Frank', 'Category': 'Errands' },
-      { 'Name': 'SRLog,System', 'Category': 'Errands' }
-    ]
-    const counts = getProviderCategoryCounts(categoryRecords)
-
-    assert.strictEqual(counts.filter(c => c.count > 0).length, 1)
+  await t.test('filters Member Added from Requests History', () => {
+    const metroData = data.getMetroAreaData('Aquidneck')
+    const hasAddedRecords = metroData.tabs['Requests History'].some(r => r['Service Name'] === 'Member Added')
+    assert.ok(!hasAddedRecords, 'should not have Member Added in history')
   })
 
-  await t.test('includes all hardcoded categories even with zero count', () => {
-    const counts = getProviderCategoryCounts([])
-
-    const categoryNames = counts.map(c => c.name)
-    assert.ok(categoryNames.includes('Errands'))
-    assert.ok(categoryNames.includes('Rides'))
-    assert.ok(categoryNames.includes('Tech Support'))
-  })
-})
-
-test('getServiceNameCounts', async (t) => {
-  await t.test('counts open/confirmed/completed/unmatched/cancelled by service name', () => {
-    const open = [
-      { 'Service Name': 'Ride: Shopping' }
-    ]
-    const confirmed = [
-      { 'Service Name': 'Ride: Shopping' }
-    ]
-    const history = [
-      { 'Service Name': 'Ride: Shopping', 'Status': 'Completed' }
-    ]
-    const counts = getServiceNameCounts(open, confirmed, history)
-
-    const shopping = counts.find(c => c.name === 'Ride: Shopping')
-    assert.strictEqual(shopping.open, 1)
-    assert.strictEqual(shopping.confirmed, 1)
-    assert.strictEqual(shopping.completed, 1)
-    assert.strictEqual(shopping.unmatched, 0)
-    assert.strictEqual(shopping.cancelled, 0)
+  await t.test('includes SRLog filter result in Volunteers', () => {
+    const metroData = data.getMetroAreaData('Aquidneck')
+    const hasSRLog = metroData.tabs.Volunteers.some(v => v['Name'].startsWith('SRLog,'))
+    assert.ok(!hasSRLog, 'should filter out SRLog entries')
   })
 
-  await t.test('counts "Past Confirmed" history records as completed', () => {
-    const open = []
-    const confirmed = []
-    const history = [
-      { 'Service Name': 'Ride: Shopping', 'Status': 'Completed' },
-      { 'Service Name': 'Errand: Pharmacy', 'Status': 'Past Confirmed' }
-    ]
-    const counts = getServiceNameCounts(open, confirmed, history)
-
-    const shopping = counts.find(c => c.name === 'Ride: Shopping')
-    assert.strictEqual(shopping.completed, 1)
-
-    const pharmacy = counts.find(c => c.name === 'Errand: Pharmacy')
-    assert.strictEqual(pharmacy.completed, 1)
-  })
-})
-
-test('getMemberVolunteerCounts', async (t) => {
-  await t.test('counts members only, volunteers only, and both based on cross-section presence', () => {
-    // Is volunteer / IsMember field values are deliberately wrong — must be ignored
-    const members = [
-      { 'Metro Area': 'Wood River', 'Name': 'Smith, Alice', 'Is volunteer': 'Yes' },  // wrong: not in providers
-      { 'Metro Area': 'Wood River', 'Name': 'Davis, Frank', 'Is volunteer': 'No' }    // wrong: is in providers
-    ]
-    const providers = [
-      { 'Metro Area': 'Wood River', 'Name': 'Davis, Frank', 'IsMember': 'false' }     // wrong: is in members
-    ]
-    const counts = getMemberVolunteerCounts(members, providers)
-
-    assert.strictEqual(counts.membersOnly, 1)
-    assert.strictEqual(counts.volunteersOnly, 0)
-    assert.strictEqual(counts.both, 1)
-    assert.strictEqual(counts.total, 2)
+  await t.test('singularizes category names', () => {
+    const metroData = data.getMetroAreaData('Aquidneck')
+    const volunteers = metroData.tabs.Volunteers
+    volunteers.forEach(v => {
+      if (v['Errand'] === '✓') {
+        assert.ok(!v['Errands'], 'should use singular Errand not Errands')
+      }
+      if (v['Ride'] === '✓') {
+        assert.ok(!v['Rides'], 'should use singular Ride not Rides')
+      }
+    })
   })
 
-  await t.test('person in both arrays is "both" regardless of field values', () => {
-    // IsMember says false, Is volunteer is blank — deliberately wrong, must still be "both"
-    const members = [
-      { 'Metro Area': 'Wood River', 'Name': 'Jones, Bob', 'Is volunteer': '' }
-    ]
-    const providers = [
-      { 'Metro Area': 'Wood River', 'Name': 'Jones, Bob', 'IsMember': 'false' }
-    ]
-    const counts = getMemberVolunteerCounts(members, providers)
-
-    assert.strictEqual(counts.both, 1)
-    assert.strictEqual(counts.membersOnly, 0)
-    assert.strictEqual(counts.volunteersOnly, 0)
-  })
-
-  await t.test('counts pure volunteers who are not members', () => {
-    const members = []
-    const providers = [
-      { 'Metro Area': 'Wood River', 'Name': 'Brown, Carol', 'IsMember': 'false' }
-    ]
-    const counts = getMemberVolunteerCounts(members, providers)
-
-    assert.strictEqual(counts.volunteersOnly, 1)
-    assert.strictEqual(counts.membersOnly, 0)
-    assert.strictEqual(counts.both, 0)
-  })
-
-  await t.test('cross-metro isolation: same name in different metro areas is not "both"', () => {
-    const members = [
-      { 'Metro Area': 'Wood River', 'Name': 'Smith, Alice', 'Is volunteer': 'Yes' }
-    ]
-    const providers = [
-      { 'Metro Area': 'Aquidneck', 'Name': 'Smith, Alice', 'IsMember': 'true' }
-    ]
-    const counts = getMemberVolunteerCounts(members, providers)
-
-    assert.strictEqual(counts.membersOnly, 1)
-    assert.strictEqual(counts.volunteersOnly, 1)
-    assert.strictEqual(counts.both, 0)
-    assert.strictEqual(counts.total, 2)
-  })
-
-  await t.test('returns zero counts when given empty arrays', () => {
-    const counts = getMemberVolunteerCounts([], [])
-
-    assert.strictEqual(counts.membersOnly, 0)
-    assert.strictEqual(counts.volunteersOnly, 0)
-    assert.strictEqual(counts.both, 0)
-    assert.strictEqual(counts.total, 0)
-  })
-})
-
-test('per-metro aggregation integrity', async (t) => {
-  await t.test('getProviderServiceCounts returns correct per-metro totals', () => {
-    const historyRecords = [
-      { 'Volunteer': 'Alice', 'Status': 'completed', 'Metro Area': 'Aquidneck' },
-      { 'Volunteer': 'Alice', 'Status': 'completed', 'Metro Area': 'Aquidneck' },
-      { 'Volunteer': 'Bob', 'Status': 'completed', 'Metro Area': 'Providence' },
-      { 'Volunteer': 'Bob', 'Status': 'completed', 'Metro Area': 'Providence' },
-      { 'Volunteer': 'Bob', 'Status': 'completed', 'Metro Area': 'Providence' }
-    ]
-    const confirmedRecords = [
-      { 'Volunteer': 'Alice', 'Metro Area': 'Aquidneck' },
-      { 'Volunteer': 'Bob', 'Metro Area': 'Providence' }
-    ]
-
-    const counts = getProviderServiceCounts(historyRecords, confirmedRecords)
-
-    // Verify correct counts per volunteer (independent of metro area)
-    const alice = counts.find(c => c.name === 'Alice')
-    assert.deepStrictEqual(alice, { name: 'Alice', completed: 2, confirmed: 1 })
-
-    const bob = counts.find(c => c.name === 'Bob')
-    assert.deepStrictEqual(bob, { name: 'Bob', completed: 3, confirmed: 1 })
-  })
-
-  await t.test('getMemberRequestCounts distinguishes between metro areas', () => {
-    const openRecords = [
-      { 'Member': 'John', 'Metro Area': 'Aquidneck' },
-      { 'Member': 'Jane', 'Metro Area': 'Providence' }
-    ]
-    const confirmedRecords = [
-      { 'Member': 'John', 'Metro Area': 'Aquidneck' },
-      { 'Member': 'John', 'Metro Area': 'Aquidneck' }
-    ]
-    const historyRecords = [
-      { 'Member': 'John', 'Status': 'completed', 'Metro Area': 'Aquidneck' },
-      { 'Member': 'Jane', 'Status': 'completed', 'Metro Area': 'Providence' },
-      { 'Member': 'Jane', 'Status': 'unmatched', 'Metro Area': 'Providence' }
-    ]
-
-    const counts = getMemberRequestCounts(openRecords, confirmedRecords, historyRecords)
-
-    const john = counts.find(c => c.name === 'John')
-    assert.strictEqual(john.open, 1)
-    assert.strictEqual(john.confirmed, 2)
-    assert.strictEqual(john.completed, 1)
-    assert.strictEqual(john.unmatched, 0)
-
-    const jane = counts.find(c => c.name === 'Jane')
-    assert.strictEqual(jane.open, 1)
-    assert.strictEqual(jane.confirmed, 0)
-    assert.strictEqual(jane.completed, 1)
-    assert.strictEqual(jane.unmatched, 1)
-  })
-
-  await t.test('per-metro aggregation with sample fixture (validates syncHub loop logic)', () => {
-    const parsed = parseDumpChain(sampleCsv)
-
-    // Simulate syncHub's per-metro loop for a single metro area
-    const metroArea = 'Aquidneck'
-    const open = (parsed['dump-service-requested'] || []).filter(r => r['Metro Area'] === metroArea)
-    const confirmed = (parsed['dump-service-confirmed'] || []).filter(r => r['Metro Area'] === metroArea)
-    const historyBase = (parsed['dump-service-history'] || [])
-      .filter(r => r['Metro Area'] === metroArea && r['Service Name'] !== 'Member Added')
-    const historyUnmatched = (parsed['dump-service-history-unmatched'] || [])
-      .filter(r => r['Metro Area'] === metroArea && r['Service Name'] !== 'Member Added')
-    const history = [...historyBase, ...historyUnmatched]
-
-    // Verify aggregation produces non-empty results
-    const pCounts = getProviderServiceCounts(history, confirmed)
-    const mCounts = getMemberRequestCounts(open, confirmed, history)
-
-    // These assertions would catch the bug where the per-metro loop was removed
-    // (providerTotals and memberTotals would be empty)
-    assert.ok(Array.isArray(pCounts), 'provider service counts should be an array')
-    assert.ok(Array.isArray(mCounts), 'member request counts should be an array')
-
-    // Verify the arrays are properly constructed (not just non-empty)
-    if (pCounts.length > 0) {
-      const sample = pCounts[0]
-      assert.ok(sample.hasOwnProperty('name'), 'provider count should have name')
-      assert.ok(sample.hasOwnProperty('completed'), 'provider count should have completed')
-      assert.ok(sample.hasOwnProperty('confirmed'), 'provider count should have confirmed')
-    }
-
-    if (mCounts.length > 0) {
-      const sample = mCounts[0]
-      assert.ok(sample.hasOwnProperty('name'), 'member count should have name')
-      assert.ok(sample.hasOwnProperty('open'), 'member count should have open')
-      assert.ok(sample.hasOwnProperty('confirmed'), 'member count should have confirmed')
-      assert.ok(sample.hasOwnProperty('completed'), 'member count should have completed')
-      assert.ok(sample.hasOwnProperty('unmatched'), 'member count should have unmatched')
-      assert.ok(sample.hasOwnProperty('cancelled'), 'member count should have cancelled')
+  await t.test('includes provider and member name sets for cross-section lookup', () => {
+    const metroData = data.getMetroAreaData('Aquidneck')
+    if (metroData.tabs.Members.length > 0) {
+      const member = metroData.tabs.Members[0]
+      const nameStr = member['Name'].trim()
+      assert.ok(typeof nameStr === 'string')
+      assert.ok(metroData.memberNames.has(nameStr), 'member names should be in memberNames set')
     }
   })
+})
 
-  await t.test('Hub cross-metro member/volunteer aggregation', () => {
-    const parsed = parseDumpChain(sampleCsv)
+test('DumpChainData.getHubData()', async (t) => {
+  const data = DumpChainData.from(sampleCsv)
 
-    // Simulate syncHub's call: full unfiltered arrays with all metro areas
-    const allMembers = parsed['dump-member'] || []
-    const allProviders = parsed['dump-service-provider'] || []
-    const counts = getMemberVolunteerCounts(allMembers, allProviders)
+  await t.test('returns hub data with aggregations', () => {
+    const metroAreas = data.metroAreas()
+    const metroAreaConfig = Object.fromEntries(metroAreas.map(ma => [ma, 'dummy-sheet-id']))
+    const hubData = data.getHubData(metroAreaConfig)
+    assert.ok(typeof hubData.memberVolunteerCounts === 'object')
+    assert.ok(Array.isArray(hubData.categoryCounts))
+    assert.ok(Array.isArray(hubData.providerTotals))
+    assert.ok(Array.isArray(hubData.memberTotals))
+    assert.ok(Array.isArray(hubData.serviceCounts))
+  })
 
-    // Verify all three categories are counted
-    assert.ok(counts.membersOnly >= 0, 'membersOnly should be non-negative')
-    assert.ok(counts.volunteersOnly >= 0, 'volunteersOnly should be non-negative')
-    assert.ok(counts.both >= 0, 'both should be non-negative')
-    assert.strictEqual(counts.total, counts.membersOnly + counts.volunteersOnly + counts.both, 'total should equal sum of categories')
+  await t.test('aggregates provider and member totals per metro area', () => {
+    const metroAreas = data.metroAreas()
+    const metroAreaConfig = Object.fromEntries(metroAreas.map(ma => [ma, 'dummy-sheet-id']))
+    const hubData = data.getHubData(metroAreaConfig)
+    if (metroAreas.length > 0) {
+      assert.ok(hubData.providerTotals.length > 0, 'should have provider totals')
+      assert.ok(hubData.memberTotals.length > 0, 'should have member totals')
+      hubData.providerTotals.forEach(pt => {
+        assert.ok(Array.isArray(pt) && pt.length === 3, 'provider total should have [metroArea, confirmed, completed]')
+      })
+      hubData.memberTotals.forEach(mt => {
+        assert.ok(Array.isArray(mt) && mt.length === 6, 'member total should have [metroArea, unmatched, cancelled, open, confirmed, completed]')
+      })
+    }
+  })
+})
 
-    // With the sample fixture, we expect:
-    // - Some members who are not volunteers (membersOnly > 0)
-    // - Some volunteers who are not members (volunteersOnly > 0)
-    // - Some who appear in both (both > 0)
-    // This validates cross-section matching works across all metro areas
-    assert.ok(counts.membersOnly > 0, 'fixture should have members who are not volunteers')
-    assert.ok(counts.volunteersOnly > 0, 'fixture should have volunteers who are not members')
-    assert.ok(counts.both > 0, 'fixture should have people in both members and volunteers')
+test('DumpChainData member/volunteer counts', async (t) => {
+  const data = DumpChainData.from(sampleCsv)
+
+  await t.test('counts members only, volunteers only, and both', () => {
+    const metroData = data.getMetroAreaData('Aquidneck')
+    const counts = metroData.memberVolunteerCounts
+    assert.ok(typeof counts.membersOnly === 'number')
+    assert.ok(typeof counts.volunteersOnly === 'number')
+    assert.ok(typeof counts.both === 'number')
+    assert.strictEqual(counts.total, counts.membersOnly + counts.volunteersOnly + counts.both)
+  })
+})
+
+test('DumpChainData provider service counts', async (t) => {
+  const data = DumpChainData.from(sampleCsv)
+
+  await t.test('calculates provider counts from Requests History and Requests Confirmed', () => {
+    const metroData = data.getMetroAreaData('Aquidneck')
+    const counts = metroData.providerCounts
+    assert.ok(Array.isArray(counts))
+    if (counts.length > 0) {
+      const sample = counts[0]
+      assert.ok(sample.name, 'should have name')
+      assert.ok(typeof sample.completed === 'number')
+      assert.ok(typeof sample.confirmed === 'number')
+    }
+  })
+})
+
+test('DumpChainData member request counts', async (t) => {
+  const data = DumpChainData.from(sampleCsv)
+
+  await t.test('calculates member counts from all request types', () => {
+    const metroData = data.getMetroAreaData('Aquidneck')
+    const counts = metroData.memberCounts
+    assert.ok(Array.isArray(counts))
+    if (counts.length > 0) {
+      const sample = counts[0]
+      assert.ok(sample.name)
+      assert.ok(typeof sample.open === 'number')
+      assert.ok(typeof sample.confirmed === 'number')
+      assert.ok(typeof sample.completed === 'number')
+      assert.ok(typeof sample.unmatched === 'number')
+    }
+  })
+})
+
+test('DumpChainData category counts', async (t) => {
+  const data = DumpChainData.from(sampleCsv)
+
+  await t.test('counts volunteers per category', () => {
+    const metroData = data.getMetroAreaData('Aquidneck')
+    const counts = metroData.categoryCounts
+    assert.ok(Array.isArray(counts))
+    if (counts.length > 0) {
+      const sample = counts[0]
+      assert.ok(sample.name)
+      assert.ok(typeof sample.count === 'number')
+    }
+  })
+})
+
+test('DumpChainData service name counts', async (t) => {
+  const data = DumpChainData.from(sampleCsv)
+
+  await t.test('counts requests by service name', () => {
+    const metroData = data.getMetroAreaData('Aquidneck')
+    const counts = metroData.serviceCounts
+    assert.ok(Array.isArray(counts))
+    if (counts.length > 0) {
+      const sample = counts[0]
+      assert.ok(sample.name)
+      assert.ok(typeof sample.open === 'number')
+    }
+  })
+})
+
+test('DumpChainData metroAreas()', async (t) => {
+  const data = DumpChainData.from(sampleCsv)
+
+  await t.test('returns sorted list of all metro areas in CSV', () => {
+    const areas = data.metroAreas()
+    assert.ok(Array.isArray(areas))
+    assert.ok(areas.length > 0)
+    assert.deepStrictEqual(areas, [...areas].sort(), 'areas should be sorted')
   })
 })

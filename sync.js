@@ -5,8 +5,8 @@ import imapSimple from 'imap-simple'
 import { simpleParser } from 'mailparser'
 import fs from 'fs'
 import { google } from 'googleapis'
-import { DumpChainData, hasMetroAreaData, getMetroAreaData } from './lib/dump-chain-processor.js'
-import { syncMetroArea, syncHub } from './lib/sheets-sync.js'
+import { DumpChainData } from './lib/dump-chain-processor.js'
+import { SheetsSyncer } from './lib/sheets-sync.js'
 import { info, error, warn } from './lib/logger.js'
 import { productionMetroAreas, devMetroAreas, hubSpreadsheetId, devHubSpreadsheetId } from './lib/metro-areas.js'
 
@@ -80,18 +80,19 @@ function createSheetsClient() {
   return google.sheets({ version: 'v4', auth })
 }
 
-async function syncSheetWithRetry(sheets, metroArea, spreadsheetId, tabs, emailTimestamp, parsed, maxRetries = 5, timeoutMs = 60000) {
+async function syncSheetWithRetry({ sheetsClient, metroArea, spreadsheetId, metroData, emailTimestamp, maxRetries = 5, timeoutMs = 60000 }) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       info(`Syncing metro area`, { metroArea, attempt, maxRetries })
 
-      const syncPromise = syncMetroArea(sheets, spreadsheetId, { tabs, emailTimestamp, metroArea, parsed })
+      const syncer = new SheetsSyncer(sheetsClient, spreadsheetId)
+      const syncPromise = syncer.syncMetroArea(metroData, { emailTimestamp, metroArea })
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs)
       )
 
       await Promise.race([syncPromise, timeoutPromise])
-      info(`Metro area sync complete`, { metroArea, tabCount: Object.keys(tabs).length })
+      info(`Metro area sync complete`, { metroArea, tabCount: Object.keys(metroData.tabs).length })
       return
     } catch (err) {
       if (attempt === maxRetries) {
@@ -105,7 +106,7 @@ async function syncSheetWithRetry(sheets, metroArea, spreadsheetId, tabs, emailT
   }
 }
 
-async function syncSheets(sheets, parsed, config, timestamp) {
+async function syncSheets(sheetsClient, data, config, timestamp) {
   const { areas, includeHub, hubSpreadsheetId, testSpreadsheetId, metroAreas, debugHubOnly } = config
   const useTestSheet = !!testSpreadsheetId
 
@@ -124,7 +125,8 @@ async function syncSheets(sheets, parsed, config, timestamp) {
   if (includeHub) {
     info(`Syncing Hub spreadsheet`)
     try {
-      await syncHub(sheets, hubSpreadsheetId, parsed, timestamp)
+      const hubSheet = new SheetsSyncer(sheetsClient, hubSpreadsheetId)
+      await hubSheet.syncHub(data.getHubData(metroAreas), timestamp)
     } catch (err) {
       error(`Hub sync failed`, { error: err.message })
     }
@@ -140,12 +142,12 @@ async function syncSheets(sheets, parsed, config, timestamp) {
         warn(`Metro area not found in config`, { metroArea })
         continue
       }
-      if (!hasMetroAreaData(parsed, metroArea)) {
+      if (!data.hasMetroArea(metroArea)) {
         warn(`Metro area absent from CSV, skipping sheet update`, { metroArea })
         continue
       }
-      const tabs = getMetroAreaData(parsed, metroArea)
-      await syncSheetWithRetry(sheets, metroArea, spreadsheetId, tabs, timestamp, parsed)
+      const metroData = data.getMetroAreaData(metroArea)
+      await syncSheetWithRetry({ sheetsClient, metroArea, spreadsheetId, metroData, emailTimestamp: timestamp })
       if (i < metroOnlyAreas.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 10000))
       }
@@ -263,8 +265,8 @@ try {
 
   if (csvContent) {
     const data = DumpChainData.from(csvContent)
-    const sheets = createSheetsClient()
-    await syncSheets(sheets, data.parsed, config, timestamp)
+    const sheetsClient = createSheetsClient()
+    await syncSheets(sheetsClient, data, config, timestamp)
     info(`File processing complete`)
   }
 

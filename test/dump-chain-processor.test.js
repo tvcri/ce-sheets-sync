@@ -139,6 +139,10 @@ test('DumpChainData.getHubData()', async (t) => {
     assert.ok(Array.isArray(hubData.providerTotals))
     assert.ok(Array.isArray(hubData.memberTotals))
     assert.ok(Array.isArray(hubData.serviceCounts))
+    const catNames = hubData.categoryCounts.map(c => c.name)
+    assert.ok(catNames.includes('Friends'), 'hub categoryCounts should include Friends')
+    const friends = hubData.categoryCounts.find(c => c.name === 'Friends')
+    assert.strictEqual(friends.count, 1, 'fixture has one Friends entry across all metros')
   })
 
   await t.test('aggregates provider and member totals per metro area', () => {
@@ -212,11 +216,15 @@ test('DumpChainData category counts', async (t) => {
     const metroData = data.getMetroAreaData('Aquidneck')
     const counts = metroData.categoryCounts
     assert.ok(Array.isArray(counts))
-    if (counts.length > 0) {
-      const sample = counts[0]
-      assert.ok(sample.name)
-      assert.ok(typeof sample.count === 'number')
-    }
+    const names = counts.map(c => c.name)
+    assert.ok(names.includes('Errands'), 'should include Errands')
+    assert.ok(names.includes('Friends'), 'should include Friends')
+    assert.ok(names.includes('Home Help'), 'should include Home Help')
+    assert.ok(names.includes('Rides'), 'should include Rides')
+    assert.ok(names.includes('Tech Support'), 'should include Tech Support')
+    const friends = counts.find(c => c.name === 'Friends')
+    assert.strictEqual(friends.count, 1, 'Smith, Alice has Friends in fixture')
+    counts.forEach(c => assert.ok(typeof c.count === 'number', 'count should be a number'))
   })
 })
 

@@ -23,31 +23,44 @@ The repo is ready for volunteer maintainers. Public-facing files:
 
 ```
 sync.js                             Entry point (IMAP poll → email → CSV → syncSheets)
-  ├── imports from lib/dump-chain-processor.js   (CSV parsing, data transformation)
-  ├── imports from lib/sheets-sync.js            (Google Sheets write layer)
+  ├── imports from lib/dump-chain-processor.js   (CSV parsing → DumpChainData)
+  ├── imports from lib/sheets-sync.js            (SheetsSyncer: Google Sheets write layer)
   ├── imports from lib/logger.js                 (structured JSON logging)
   └── imports from lib/metro-areas.js            (metro area → spreadsheet ID config)
 
-lib/                                Core library (reusable, pure functions for lib/dump-chain-processor.js)
+lib/                                Core library (reusable, isolated layers)
   ├── logger.js                     info/warn/error/debug → JSON stdout
   ├── metro-areas.js                Production/dev metro areas & Hub IDs (single source of truth)
-  ├── dump-chain-processor.js       CSV parsing + data transformation (pure functions, no I/O)
-  │   ├── splitDumpChain(csvContent)            Split multi-section CSV by "dump-*" headers
-  │   ├── parseSection(sectionContent)          csv-parse/sync → array of objects
-  │   ├── parseDumpChain(csvContent)            Combine all sections → { "dump-member": [...], ... }
-  │   ├── getMetroAreaData(parsed, metroArea)   Filter by metro area, format dates, flatten categories
-  │   ├── flattenProviderCategories()           Dynamically discover all categories and pivot them
-  │   ├── getProviderServiceCounts()            Aggregate volunteer counts by service type
-  │   ├── getMemberRequestCounts()              Aggregate member counts by request type (incl. unmatched)
-  │   ├── getProviderCategoryCounts()           Aggregate volunteer counts by category (hardcoded list)
-  │   ├── getServiceNameCounts()                Aggregate service counts by name (incl. unmatched)
-  │   └── formatDateToISO(dateString)           Parse various date formats → ISO string
+  ├── dump-chain-processor.js       CSV → DumpChainData (pure data transformation, no I/O)
+  │   └── export: DumpChainData class
+  │       ├── static from(csvContent)           Parse CSV → DumpChainData instance
+  │       ├── hasMetroArea(metroArea)           Check if metro exists in CSV
+  │       ├── metroAreas()                      Sorted list of all metros in CSV
+  │       ├── getMetroAreaData(metroArea)       Filtered + aggregated data for one metro (tabs + analytics)
+  │       ├── getHubData(metroAreas)            Cross-metro aggregations (providerTotals, memberTotals, etc.)
+  │       └── .parsed getter                    Raw sections (internal; for backward compat)
   │
-  └── sheets-sync.js                Google Sheets write layer
-      ├── syncTab(tabName, rows, metroArea)     Clear range A:Z, write headers + rows via Sheets API
-      ├── syncMetroArea(metroArea)              Orchestrate 5× syncTab() calls + auto-fit + updateMetadata()
-      ├── updateMetadata(metroArea)             Write counts/analytics to "🕐" / "Metadata" tab
-      └── syncHub()                 Aggregate and write cross-metro data to Hub spreadsheet
+  │   Internal (private) functions:
+  │   ├── formatDateToISO(dateString)           Parse various formats → ISO
+  │   ├── convertToDisplayFormat(dateStr)       ISO → 12-hour AM/PM display
+  │   ├── splitDumpChain(csvContent)            Split multi-section CSV by "dump-*" headers
+  │   ├── parseSection(sectionContent)          csv-parse → array of objects
+  │   ├── parseDumpChain(csvContent)            Combine sections → { "dump-member": [...], ... }
+  │   ├── removeMetroAreaColumn(records)        Remove after filtering by metro
+  │   ├── flattenProviderCategories()           Dynamically discover + pivot categories
+  │   ├── getProviderServiceCounts()            Volunteer counts by service type
+  │   ├── getMemberRequestCounts()              Member counts by request type (incl. unmatched)
+  │   ├── getProviderCategoryCounts()           Volunteer counts by category
+  │   ├── getServiceNameCounts()                Service counts by name (incl. unmatched)
+  │   ├── getMemberVolunteerCounts()            Member/volunteer reconciliation (membersOnly, volunteersOnly, both)
+  │   └── getHubData(parsed, metroAreas)        Private impl; called by DumpChainData.getHubData()
+  │
+  └── sheets-sync.js                Google Sheets write layer (SheetsSyncer class, no data transformation)
+      └── export: SheetsSyncer class
+          ├── constructor(sheetsClient, spreadsheetId)
+          ├── async syncMetroArea(metroData, {emailTimestamp, metroArea})
+          ├── async syncHub(hubData, emailTimestamp)
+          └── Private methods: #syncTab, #updateMetadata, #updateHubMetadata, #retryWithBackoff, etc.
 
 setup/ce/                           ClubExpress report XML definitions
                                     These are exported from Club Express and loaded back into the tool.
@@ -55,7 +68,7 @@ setup/ce/                           ClubExpress report XML definitions
                                     Not executed by JavaScript — they configure the Club Express platform.
 ```
 
-**Data flow:** IMAP polling → email with CSV attachment → splitDumpChain() → parseSection() → parseDumpChain() → syncHub() + syncMetroArea() for each metro → 5× syncTab() + auto-fit + updateMetadata()
+**Data flow:** IMAP polling → email with CSV → DumpChainData.from(csv) → getMetroAreaData() + getHubData() → SheetsSyncer.syncMetroArea() + syncHub() → Google Sheets
 
 ## Running
 
@@ -110,28 +123,29 @@ When `dump-service-history`, `dump-service-history-unmatched`, `dump-service-con
 
 ## Test Coverage
 
-**49 tests** (Node.js built-in test runner) covering all core functions:
+**33 tests** (Node.js built-in test runner) covering all public API and behaviors:
 
-- `formatDateToISO()` — date parsing across multiple formats
-- `splitDumpChain()` — CSV multi-section splitting
-- `parseSection()` — CSV parsing per section
-- `parseDumpChain()` — full CSV pipeline
-- `getMetroAreaData()` — filtering, transformation, category flattening, unmatched history merge
-- `flattenProviderCategories()` — dynamic category discovery (singularized names)
-- `getProviderServiceCounts()` — volunteer count aggregation
-- `getMemberRequestCounts()` — member count aggregation including unmatched
-- `getProviderCategoryCounts()` — volunteer category counts
-- `getServiceNameCounts()` — service aggregation including unmatched
-- `getMemberVolunteerCounts()` — member/volunteer reconciliation
-- `per-metro aggregation integrity` — syncHub loop logic, cross-metro counting
+All tests use `DumpChainData.from(csvContent)` with fixture data. No direct function imports.
+
+- `DumpChainData.from()` — CSV parsing, error handling (empty CSV)
+- `DumpChainData.hasMetroArea()` — presence checks
+- `DumpChainData.metroAreas()` — sorted list of metros in CSV
+- `DumpChainData.getMetroAreaData()` — date formatting (ISO and display), section filtering, category flattening, cross-section name sets (providerNames, memberNames), SRLog filtering, 'Member Added' exclusion
+- `DumpChainData.getMetroAreaData() analytics` — providerCounts, memberCounts, categoryCounts, serviceCounts, memberVolunteerCounts
+- `DumpChainData.getHubData()` — cross-metro aggregations (memberVolunteerCounts, categoryCounts, providerTotals, memberTotals, serviceCounts)
+
+Fixture-based approach: tests create targeted CSV strings with only the data needed for each scenario. This makes tests resilient to internal refactoring (private functions can change without breaking tests).
 
 Run with `npm test`. All tests pass. Tests run automatically on Node.js 18.x, 20.x, 22.x via GitHub Actions on push/PR to main.
 
 ## What's Done
 
-✅ Architecture documented (CLAUDE.md)  
-✅ Full test coverage for all core functions (49 tests)  
-✅ Code cleanup and readability (all tests pass)  
+✅ Architecture documented (CLAUDE.md) — clean separation: transform / write / orchestrate  
+✅ DumpChainData class with stable public API — single export, reusable, no Sheets coupling  
+✅ SheetsSyncer class — pure write layer, no data transformation, testable  
+✅ Modular, reusable code — `dump-chain-processor.js` portable to MySQL, API endpoints, batch jobs  
+✅ Test redesign (33 tests) — fixture-based, API-driven, resilient to internal changes  
+✅ Full test coverage for all core behaviors (33 tests)  
 ✅ Public documentation (README, 5 guides, flow diagram)  
 ✅ Environment variable guide with examples  
 ✅ Setup and troubleshooting docs for volunteers  
@@ -141,6 +155,7 @@ Run with `npm test`. All tests pass. Tests run automatically on Node.js 18.x, 20
 ✅ Template sheets for safe testing by volunteers  
 ✅ Column auto-fit workaround for reliable Google Sheets formatting  
 ✅ GitHub Actions CI (Node.js 18.x, 20.x, 22.x LTS)  
+✅ Fixed dev metro areas support — `getHubData(metroAreas)` accepts any config  
 
 **Known limitation:** Magic column numbers in `updateMetadata()`. Use fixed offset spacing (10+ columns apart) when adding new chart blocks. CE report configs must be re-imported to Club Express when changed.
 
@@ -153,17 +168,24 @@ The repo is ready for volunteers. Don't add complexity to shared code without a 
 
 ## Before Touching Code
 
-**Understand the concern:**
-- `dump-chain-processor.js` — pure logic, testable, no I/O
-- `sheets-sync.js` — I/O layer (Sheets API), depends on dump-chain-processor
-- `sync.js` — orchestrator, IMAP polling, retries, timing
+**Understand the architecture — clean separation of concerns:**
+- `dump-chain-processor.js` — Pure data transformation. CSV in → structured arrays/objects out. No I/O, no Google Sheets knowledge. Stateless, reusable (e.g., can be used for MySQL sync without modification).
+- `sheets-sync.js` — Pure write layer. Accepts DumpChainData outputs (metroData, hubData) and writes to Sheets via API. No data transformation, no computation, no CSV parsing.
+- `sync.js` — Orchestrator. IMAP polling, error handling, retry logic, config validation. Glues together DumpChainData and SheetsSyncer.
+
+**Extending the module:**
+- Add new aggregations? Add them to `dump-chain-processor.js` (private function) and expose via `DumpChainData.getXxxData()` method.
+- Change how data is written to Sheets? Modify `SheetsSyncer` methods.
+- Change metro area configuration? No changes needed; pass different metroAreas object to `DumpChainData.getHubData()`.
 
 **Backwards compatibility:**
-- Changes to `dump-chain-processor.js` output affect all 14 metro area spreadsheets and the Hub spreadsheet
+- Changes to `DumpChainData` output affect all 14 metro area spreadsheets and the Hub spreadsheet
 - Test with at least one real metro area before merging
 - Don't break existing spreadsheet structure (columns, tabs) without understanding the impact
 - CE report config changes require re-import to Club Express for changes to take effect
 - Data model changes (field names, status values) may require spreadsheet updates if volunteers have custom logic
+
+**Testing:** All tests use `DumpChainData.from(csv)` with fixture data and verify behavior through public API. No direct function testing. This makes tests resilient to internal refactoring.
 
 ## ESM Notes
 

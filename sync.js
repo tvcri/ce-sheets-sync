@@ -288,9 +288,9 @@ try {
       info(`Database sync complete`)
     }
 
-    // info(`Starting sheet sync`)
-    // await syncSheets(sheetsClient, data, config, timestamp)
-    // info(`Sheet sync complete`)
+    info(`Starting sheet sync`)
+    await syncSheets(sheetsClient, data, config, timestamp)
+    info(`Sheet sync complete`)
 
     info(`File processing complete`)
   }

@@ -22,9 +22,10 @@ The repo is ready for volunteer maintainers. Public-facing files:
 ## Architecture
 
 ```
-sync.js                             Entry point (IMAP poll → email → CSV → syncSheets)
+sync.js                             Entry point (IMAP poll → email → CSV → syncSheets + syncDB)
   ├── imports from lib/dump-chain-processor.js   (CSV parsing → DumpChainData)
   ├── imports from lib/sheets-sync.js            (SheetsSyncer: Google Sheets write layer)
+  ├── imports from lib/db-sync.js                (syncDB: MySQL write layer)
   ├── imports from lib/logger.js                 (structured JSON logging)
   └── imports from lib/metro-areas.js            (metro area → spreadsheet ID config)
 
@@ -55,12 +56,19 @@ lib/                                Core library (reusable, isolated layers)
   │   ├── getMemberVolunteerCounts()            Member/volunteer reconciliation (membersOnly, volunteersOnly, both)
   │   └── getHubData(parsed, metroAreas)        Private impl; called by DumpChainData.getHubData()
   │
-  └── sheets-sync.js                Google Sheets write layer (SheetsSyncer class, no data transformation)
-      └── export: SheetsSyncer class
-          ├── constructor(sheetsClient, spreadsheetId)
-          ├── async syncMetroArea(metroData, {emailTimestamp, metroArea})
-          ├── async syncHub(hubData, emailTimestamp)
-          └── Private methods: #syncTab, #updateMetadata, #updateHubMetadata, #retryWithBackoff, etc.
+  ├── sheets-sync.js                Google Sheets write layer (SheetsSyncer class, no data transformation)
+  │   └── export: SheetsSyncer class
+  │       ├── constructor(sheetsClient, spreadsheetId)
+  │       ├── async syncMetroArea(metroData, {emailTimestamp, metroArea})
+  │       ├── async syncHub(hubData, emailTimestamp)
+  │       └── Private methods: #syncTab, #updateMetadata, #updateHubMetadata, #retryWithBackoff, etc.
+  │
+  └── db-sync.js                    MySQL write layer (truncate-and-rebuild pattern, no data transformation)
+      └── export functions
+          ├── async syncDB(dbConfig, data, timestamp)    Main entry point
+          ├── async syncAll(conn, data, timestamp)       Orchestrate all sync phases
+          ├── async createConnection(config)             MySQL connection setup
+          └── async bulkInsert(conn, table, rows)        Batch INSERT helper
 
 setup/ce/                           ClubExpress report XML definitions
                                     These are exported from Club Express and loaded back into the tool.
@@ -68,7 +76,7 @@ setup/ce/                           ClubExpress report XML definitions
                                     Not executed by JavaScript — they configure the Club Express platform.
 ```
 
-**Data flow:** IMAP polling → email with CSV → DumpChainData.from(csv) → getMetroAreaData() + getHubData() → SheetsSyncer.syncMetroArea() + syncHub() → Google Sheets
+**Data flow:** IMAP polling → email with CSV → DumpChainData.from(csv) → getMetroAreaData() + getHubData() → SheetsSyncer.syncMetroArea() + syncHub() → Google Sheets; also → syncDB() → MySQL (person, member, volunteer, service_request tables + ce_dump timestamp)
 
 ## Running
 
@@ -156,6 +164,9 @@ Run with `npm test`. All tests pass. Tests run automatically on Node.js 18.x, 20
 ✅ Column auto-fit workaround for reliable Google Sheets formatting  
 ✅ GitHub Actions CI (Node.js 18.x, 20.x, 22.x LTS)  
 ✅ Fixed dev metro areas support — `getHubData(metroAreas)` accepts any config  
+✅ Database sync integration — `lib/db-sync.js` consolidates ce-db-sync POC into this sidecar  
+✅ Unified dual-sync — single `sync.js` run syncs both Google Sheets and production MySQL  
+✅ CE dump timestamp tracking — email timestamp stored in `ce_dump` table for audit trail  
 
 **Known limitation:** Magic column numbers in `updateMetadata()`. Use fixed offset spacing (10+ columns apart) when adding new chart blocks. CE report configs must be re-imported to Club Express when changed.
 
@@ -169,9 +180,10 @@ The repo is ready for volunteers. Don't add complexity to shared code without a 
 ## Before Touching Code
 
 **Understand the architecture — clean separation of concerns:**
-- `dump-chain-processor.js` — Pure data transformation. CSV in → structured arrays/objects out. No I/O, no Google Sheets knowledge. Stateless, reusable (e.g., can be used for MySQL sync without modification).
-- `sheets-sync.js` — Pure write layer. Accepts DumpChainData outputs (metroData, hubData) and writes to Sheets via API. No data transformation, no computation, no CSV parsing.
-- `sync.js` — Orchestrator. IMAP polling, error handling, retry logic, config validation. Glues together DumpChainData and SheetsSyncer.
+- `dump-chain-processor.js` — Pure data transformation. CSV in → structured arrays/objects out. No I/O, no Google Sheets or MySQL knowledge. Stateless, reusable (e.g., can be used for other syncs without modification).
+- `sheets-sync.js` — Pure write layer for Google Sheets. Accepts DumpChainData outputs (metroData, hubData) and writes to Sheets via API. No data transformation, no computation, no CSV parsing.
+- `db-sync.js` — Pure write layer for MySQL. Accepts DumpChainData and timestamp, performs truncate-and-rebuild sync to person, member, volunteer, service_request, and ce_dump tables. Uses INSERT...SELECT with JSON_TABLE to avoid loading record sets into memory.
+- `sync.js` — Orchestrator. IMAP polling, error handling, retry logic, config validation. Glues together DumpChainData, SheetsSyncer, and syncDB for unified dual-sync in a single run.
 
 **Extending the module:**
 - Add new aggregations? Add them to `dump-chain-processor.js` (private function) and expose via `DumpChainData.getXxxData()` method.

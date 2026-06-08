@@ -7,6 +7,7 @@ import fs from 'fs'
 import { google } from 'googleapis'
 import { DumpChainData } from './lib/dump-chain-processor.js'
 import { SheetsSyncer } from './lib/sheets-sync.js'
+import { syncDB } from './lib/db-sync.js'
 import { info, error, warn } from './lib/logger.js'
 import { productionMetroAreas, devMetroAreas, hubSpreadsheetId, devHubSpreadsheetId } from './lib/metro-areas.js'
 
@@ -33,7 +34,8 @@ function validateConfig() {
   const csvFile = process.env.CSV_FILE || null
   if (csvFile) {
     if (!fs.existsSync(csvFile)) throw new Error(`CSV file not found: ${csvFile}`)
-    return { csvFile, metroAreas, hubSpreadsheetId: activeHubSpreadsheetId, areas, includeHub, testSpreadsheetId, debugHubOnly }
+    const dbConfig = createDbConfig()
+    return { csvFile, metroAreas, hubSpreadsheetId: activeHubSpreadsheetId, areas, includeHub, testSpreadsheetId, debugHubOnly, dbConfig }
   }
 
   const user = process.env.EMAIL_ADDRESS
@@ -58,7 +60,18 @@ function validateConfig() {
     slowDurationMs: parseInt(process.env.POLL_SLOW_DURATION_MS || '3000000'),
   }
 
-  return { imapConfig, pollConfig, metroAreas, hubSpreadsheetId: activeHubSpreadsheetId, areas, includeHub, testSpreadsheetId, debugHubOnly }
+  const dbConfig = createDbConfig()
+  return { imapConfig, pollConfig, metroAreas, hubSpreadsheetId: activeHubSpreadsheetId, areas, includeHub, testSpreadsheetId, debugHubOnly, dbConfig }
+}
+
+function createDbConfig() {
+  return {
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: parseInt(process.env.DB_PORT || '60001'),
+    user: process.env.DB_USER || 'vg',
+    password: process.env.DB_PASSWORD || 'vgpw',
+    database: process.env.DB_NAME || 'vg'
+  }
 }
 
 function createSheetsClient() {
@@ -260,13 +273,25 @@ try {
     timestamp = new Date().toISOString()
   } else {
     const result = await pollUntilMessage(config.imapConfig, config.pollConfig)
-    if (result) ({ csvContent, timestamp } = result)
+    if (result) {
+      ({ csvContent, timestamp } = result)
+    }
   }
 
   if (csvContent) {
     const data = DumpChainData.from(csvContent)
     const sheetsClient = createSheetsClient()
-    await syncSheets(sheetsClient, data, config, timestamp)
+
+    if (config.dbConfig) {
+      info(`Starting database sync`)
+      await syncDB(config.dbConfig, data, timestamp)
+      info(`Database sync complete`)
+    }
+
+    // info(`Starting sheet sync`)
+    // await syncSheets(sheetsClient, data, config, timestamp)
+    // info(`Sheet sync complete`)
+
     info(`File processing complete`)
   }
 

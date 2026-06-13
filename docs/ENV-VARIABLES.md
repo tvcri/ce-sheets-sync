@@ -40,3 +40,12 @@ The robot polls the email inbox for new reports using a two-phase strategy: chec
 | `METRO_AREAS` | Comma-separated metro areas to sync (all 14 if not set) | `"Aquidneck"` or `"Aquidneck,Providence"` |
 | `CSV_FILE` | Process a local CSV file instead of polling email | `scratch/dump-chain.csv` |
 | `TEST_SPREADSHEET_ID` | Write to a test sheet instead of real sheets (requires `METRO_AREAS`) | `1XM5XHcILLs_0ifn6lbQ4F7JRrFU6lLCjG1u6r163CUs` |
+
+## Village Green Integration (Optional)
+
+After a successful database sync, the robot can notify the Village Green API via a webhook POST. If `VG_SYNC_WEBHOOK_URL` is not set, this step is skipped silently and the sync completes normally. A webhook failure (non-OK HTTP response or network error) is logged as a warning but never aborts the sync.
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VG_SYNC_WEBHOOK_URL` | URL to POST after a successful database sync | `https://api.villagegreen.example.com/webhooks/ce-sync` |
+| `VG_SYNC_WEBHOOK_KEY` | Bearer token sent in the `Authorization` header | `your-webhook-secret-key` |

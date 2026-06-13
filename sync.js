@@ -31,11 +31,14 @@ function validateConfig() {
     includeHub = areas.includes('Hub')
   }
 
+  const webhookUrl = process.env.VG_SYNC_WEBHOOK_URL || null
+  const webhookKey = process.env.VG_SYNC_WEBHOOK_KEY || null
+
   const csvFile = process.env.CSV_FILE || null
   if (csvFile) {
     if (!fs.existsSync(csvFile)) throw new Error(`CSV file not found: ${csvFile}`)
     const dbConfig = createDbConfig()
-    return { csvFile, metroAreas, hubSpreadsheetId: activeHubSpreadsheetId, areas, includeHub, testSpreadsheetId, debugHubOnly, dbConfig }
+    return { csvFile, metroAreas, hubSpreadsheetId: activeHubSpreadsheetId, areas, includeHub, testSpreadsheetId, debugHubOnly, dbConfig, webhookUrl, webhookKey }
   }
 
   const user = process.env.EMAIL_ADDRESS
@@ -61,7 +64,7 @@ function validateConfig() {
   }
 
   const dbConfig = createDbConfig()
-  return { imapConfig, pollConfig, metroAreas, hubSpreadsheetId: activeHubSpreadsheetId, areas, includeHub, testSpreadsheetId, debugHubOnly, dbConfig }
+  return { imapConfig, pollConfig, metroAreas, hubSpreadsheetId: activeHubSpreadsheetId, areas, includeHub, testSpreadsheetId, debugHubOnly, dbConfig, webhookUrl, webhookKey }
 }
 
 function createDbConfig() {
@@ -71,6 +74,25 @@ function createDbConfig() {
     user: process.env.DB_USER || 'vg',
     password: process.env.DB_PASSWORD || 'vgpw',
     database: process.env.DB_NAME || 'vg'
+  }
+}
+
+async function notifyVgApi(webhookUrl, webhookKey) {
+  try {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${webhookKey}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!res.ok) {
+      warn(`VG webhook returned non-OK status`, { status: res.status, url: webhookUrl })
+      return
+    }
+    info(`VG webhook notified`, { status: res.status, url: webhookUrl })
+  } catch (err) {
+    warn(`VG webhook request failed`, { url: webhookUrl, error: err.message })
   }
 }
 
@@ -286,6 +308,9 @@ try {
       info(`Starting database sync`)
       await syncDB(config.dbConfig, data, timestamp)
       info(`Database sync complete`)
+      if (config.webhookUrl) {
+        await notifyVgApi(config.webhookUrl, config.webhookKey)
+      }
     }
 
     info(`Starting sheet sync`)

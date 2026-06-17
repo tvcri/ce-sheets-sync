@@ -221,8 +221,8 @@ async function checkForMessage(imapConfig) {
       return null
     }
 
-    const timestamp = parsed.date ? new Date(parsed.date).toISOString() : new Date().toISOString()
-    info(`Processing email message`, { subject, emailSentTimestamp: timestamp })
+    const timestamp = parsed.date ? new Date(parsed.date) : new Date()
+    info(`Processing email message`, { subject, emailSentTimestamp: timestamp.toISOString() })
 
     if (!parsed.attachments?.length) {
       warn(`Email has no attachments`, { subject })
@@ -292,7 +292,7 @@ try {
   if (config.csvFile) {
     info(`Processing CSV file`, { csvFilePath: config.csvFile })
     csvContent = fs.readFileSync(config.csvFile, 'utf-8')
-    timestamp = new Date().toISOString()
+    timestamp = new Date()
   } else {
     const result = await pollUntilMessage(config.imapConfig, config.pollConfig)
     if (result) {

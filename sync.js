@@ -318,8 +318,12 @@ try {
       info(`Database sync complete`)
       if (config.jotformConfig) {
         info(`Starting FCV sync`)
-        await syncFCV(config.dbConfig, config.jotformConfig)
-        info(`FCV sync complete`)
+        try {
+          await syncFCV(config.dbConfig, config.jotformConfig)
+          info(`FCV sync complete`)
+        } catch (err) {
+          warn(`FCV sync failed`, { error: err.message })
+        }
       }
       if (config.webhookUrl) {
         await notifyVgApi(config.webhookUrl, config.webhookKey)

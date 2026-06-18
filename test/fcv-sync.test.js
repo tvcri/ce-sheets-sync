@@ -48,4 +48,18 @@ test('mapActivityTypes', async (t) => {
   await t.test('returns empty array for undefined input', () => {
     assert.deepStrictEqual(mapActivityTypes(undefined), [])
   })
+
+  await t.test('handles dict form with only other key', () => {
+    assert.deepStrictEqual(
+      mapActivityTypes({ other: 'Sent a postcard' }),
+      ['other']
+    )
+  })
+
+  await t.test('handles dict form with numeric keys and other key', () => {
+    assert.deepStrictEqual(
+      mapActivityTypes({ '0': 'Companionship/Friendly Conversation (sharing stories, current events, photos)', '1': 'Dining out', other: 'shopping' }),
+      ['companionship', 'dining', 'other']
+    )
+  })
 })

@@ -319,7 +319,7 @@ try {
       if (config.jotformConfig) {
         info(`Starting FCV sync`)
         try {
-          await syncFCV(config.dbConfig, config.jotformConfig)
+          await syncFCV(config.dbConfig, config.jotformConfig, process.env.ANTHROPIC_API_KEY ?? null)
           info(`FCV sync complete`)
         } catch (err) {
           warn(`FCV sync failed`, { error: err.message })

@@ -1,6 +1,6 @@
-import { test } from 'node:test'
+import { test, mock } from 'node:test'
 import assert from 'node:assert'
-import { normalizeVillageName, mapActivityTypes } from '../lib/fcv-sync.js'
+import { normalizeVillageName, mapActivityTypes, fuzzyMatchNames } from '../lib/fcv-sync.js'
 
 test('normalizeVillageName', async (t) => {
   await t.test('maps Aquidneck Island to Aquidneck', () => {
@@ -60,6 +60,48 @@ test('mapActivityTypes', async (t) => {
     assert.deepStrictEqual(
       mapActivityTypes({ '0': 'Companionship/Friendly Conversation (sharing stories, current events, photos)', '1': 'Dining out', other: 'shopping' }),
       ['companionship', 'dining', 'other']
+    )
+  })
+})
+
+test('fuzzyMatchNames', async (t) => {
+  const personNames = ['Albrektson, David', 'Bauer, Debra', 'Minifie, Elizabeth']
+
+  await t.test('returns correction map from API response', async () => {
+    const mockResponse = { 'Albreksten, David': 'Albrektson, David', 'Bauer, Deb': 'Bauer, Debra' }
+    globalThis.fetch = async () => ({
+      ok: true,
+      json: async () => ({ content: [{ text: JSON.stringify(mockResponse) }] })
+    })
+    const result = await fuzzyMatchNames(['Albreksten, David', 'Bauer, Deb'], personNames, 'test-key')
+    assert.deepStrictEqual(result, mockResponse)
+  })
+
+  await t.test('returns null entries for unresolvable names', async () => {
+    const mockResponse = { 'Xxx, Xxx': null }
+    globalThis.fetch = async () => ({
+      ok: true,
+      json: async () => ({ content: [{ text: JSON.stringify(mockResponse) }] })
+    })
+    const result = await fuzzyMatchNames(['Xxx, Xxx'], personNames, 'test-key')
+    assert.deepStrictEqual(result, { 'Xxx, Xxx': null })
+  })
+
+  await t.test('handles markdown code fence wrapping JSON response', async () => {
+    const mockResponse = { 'Bauer, Deb': 'Bauer, Debra' }
+    globalThis.fetch = async () => ({
+      ok: true,
+      json: async () => ({ content: [{ text: '```json\n' + JSON.stringify(mockResponse) + '\n```' }] })
+    })
+    const result = await fuzzyMatchNames(['Bauer, Deb'], personNames, 'test-key')
+    assert.deepStrictEqual(result, mockResponse)
+  })
+
+  await t.test('throws on non-OK API response', async () => {
+    globalThis.fetch = async () => ({ ok: false, status: 401 })
+    await assert.rejects(
+      () => fuzzyMatchNames(['Bauer, Deb'], personNames, 'bad-key'),
+      /Anthropic API returned 401/
     )
   })
 })

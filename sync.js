@@ -8,6 +8,7 @@ import { google } from 'googleapis'
 import { DumpChainData } from './lib/dump-chain-processor.js'
 import { SheetsSyncer } from './lib/sheets-sync.js'
 import { syncDB } from './lib/db-sync.js'
+import { syncFCV } from './lib/fcv-sync.js'
 import { info, error, warn } from './lib/logger.js'
 import { productionMetroAreas, devMetroAreas, hubSpreadsheetId, devHubSpreadsheetId } from './lib/metro-areas.js'
 
@@ -38,7 +39,7 @@ function validateConfig() {
   if (csvFile) {
     if (!fs.existsSync(csvFile)) throw new Error(`CSV file not found: ${csvFile}`)
     const dbConfig = createDbConfig()
-    return { csvFile, metroAreas, hubSpreadsheetId: activeHubSpreadsheetId, areas, includeHub, testSpreadsheetId, debugHubOnly, dbConfig, webhookUrl, webhookKey }
+    return { csvFile, metroAreas, hubSpreadsheetId: activeHubSpreadsheetId, areas, includeHub, testSpreadsheetId, debugHubOnly, dbConfig, webhookUrl, webhookKey, jotformConfig: createJotformConfig() }
   }
 
   const user = process.env.EMAIL_ADDRESS
@@ -64,7 +65,7 @@ function validateConfig() {
   }
 
   const dbConfig = createDbConfig()
-  return { imapConfig, pollConfig, metroAreas, hubSpreadsheetId: activeHubSpreadsheetId, areas, includeHub, testSpreadsheetId, debugHubOnly, dbConfig, webhookUrl, webhookKey }
+  return { imapConfig, pollConfig, metroAreas, hubSpreadsheetId: activeHubSpreadsheetId, areas, includeHub, testSpreadsheetId, debugHubOnly, dbConfig, webhookUrl, webhookKey, jotformConfig: createJotformConfig() }
 }
 
 function createDbConfig() {
@@ -75,6 +76,13 @@ function createDbConfig() {
     password: process.env.DB_PASSWORD || 'vgpw',
     database: process.env.DB_NAME || 'vg'
   }
+}
+
+function createJotformConfig() {
+  const apiKey = process.env.JOTFORM_API_KEY
+  const formId = process.env.JOTFORM_FORM_ID
+  if (!apiKey || !formId) return null
+  return { apiKey, formId }
 }
 
 async function notifyVgApi(webhookUrl, webhookKey) {
@@ -308,6 +316,11 @@ try {
       info(`Starting database sync`)
       await syncDB(config.dbConfig, data, timestamp)
       info(`Database sync complete`)
+      if (config.jotformConfig) {
+        info(`Starting FCV sync`)
+        await syncFCV(config.dbConfig, config.jotformConfig)
+        info(`FCV sync complete`)
+      }
       if (config.webhookUrl) {
         await notifyVgApi(config.webhookUrl, config.webhookKey)
       }

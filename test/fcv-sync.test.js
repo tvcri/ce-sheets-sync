@@ -31,7 +31,7 @@ test('mapActivityTypes', async (t) => {
         'Shared Activity (board game, cards, puzzles, craft)',
         'Assistance (reading aloud, writing a letter, helping with simple tasks)',
         'Outdoors (walking, gardening, birding, etc)',
-        'Outing ( events, movies, Sr Center,  etc.)',
+        'Outing (\xa0events, movies, Sr Center,\xa0 etc.)',
         'Dining out',
         'Wellness check-in (follow up after illness or hospitalization)',
         'Pet visit',
